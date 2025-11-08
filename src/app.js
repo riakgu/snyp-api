@@ -1,12 +1,19 @@
 import "dotenv/config";
 import express from "express";
-const app = express()
-const port = 3000
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')
+import authRoute from "./routes/auth.route.js";
+import {errorMiddleware} from "./middlewares/error.middleware.js";
+import {logger} from "./utils/logging.js";
+
+const app = express();
+app.use(express.json());
+
+app.use("/api/auth", authRoute);
+
+app.use(errorMiddleware)
+
+app.listen(3000, () => {
+    logger.info("App started");
 })
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-})
+export default app;
