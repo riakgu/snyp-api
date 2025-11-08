@@ -1,5 +1,34 @@
 # Auth API Spec
 
+## Register API
+
+Endpoint: POST /api/auth/register
+
+Request Body:
+```json
+{
+  "email" : "info@riakgu.com",
+  "password": "supersecret",
+  "name": "riakgu"
+}
+```
+Response Body Success:
+```json
+{
+  "data": {
+    "email" : "info@riakgu.com",
+    "name": "riakgu"
+  }
+}
+```
+
+Response Body Error:
+```json
+{
+  "errors": "email already registered"
+}
+```
+
 ## Login API
 
 Endpoint: POST /api/auth/login
@@ -30,7 +59,7 @@ Response Body Error:
 
 ## Refresh Token API
 
-Endpoint: POST /api/auth/login
+Endpoint: POST /api/auth/refresh
 
 Header:
 - Authorization: token
@@ -74,7 +103,7 @@ Response Body Error:
 ```
 
 ## Logout API
-Endpoint: DELETE /api/users/logout
+Endpoint: DELETE /api/auth/logout
 
 Header:
 - Authorization: token
