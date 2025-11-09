@@ -1,9 +1,10 @@
-import {loginValidation, registerValidation} from "../validations/auth.validation.js";
+import {loginValidation, refreshValidation, registerValidation} from "../validations/auth.validation.js";
 import {prismaClient} from "../config/prisma.js";
 import {ResponseError} from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
 import {validate} from "../utils/validators.js";
 import tokenService from "./token.service.js";
+import {logger} from "../utils/logging.js";
 
 async function register(req) {
     const { name, email, password } = validate(registerValidation, req);
@@ -61,7 +62,24 @@ async function login(req) {
     }
 }
 
+async function refresh(req) {
+    const { refreshToken } = validate(refreshValidation, req);
+
+    const decoded = await tokenService.verifyRefreshToken(refreshToken);
+
+    const newAccessToken = tokenService.generateAccessToken(decoded.userId);
+    const newRefreshToken = tokenService.generateRefreshToken(decoded.userId);
+
+    await tokenService.storeRefreshToken(decoded.userId, newRefreshToken);
+
+    return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+    }
+}
+
 export default {
     register,
     login,
+    refresh,
 };

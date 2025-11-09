@@ -121,3 +121,54 @@ describe('POST /api/auth/login', function () {
         expect(result.body.errors).toBeDefined();
     });
 });
+
+describe('POST /api/auth/refresh', function () {
+    beforeEach(async () => {
+        await createTestUser();
+    });
+
+    afterEach(async () => {
+        await removeTestUser();
+    });
+
+    it('should can refresh token', async () => {
+        const login = await supertest(app)
+            .post('/api/auth/login')
+            .send({
+                email: "test@gmail.com",
+                password: "supersecret"
+            });
+
+        const result = await supertest(app)
+            .post('/api/auth/refresh')
+            .send({
+                refreshToken: login.body.data.refreshToken,
+            });
+
+        expect(result.status).toBe(200);
+        expect(result.body.data.accessToken).toBeDefined();
+        expect(result.body.data.refreshToken).toBeDefined();
+    });
+
+    it('should reject if token is invalid', async () => {
+        const result = await supertest(app)
+            .post('/api/auth/refresh')
+            .send({
+                refreshToken: "",
+            });
+
+        expect(result.status).toBe(400);
+        expect(result.body.errors).toBeDefined();
+    });
+
+    it('should reject if token is wrong', async () => {
+        const result = await supertest(app)
+            .post('/api/auth/refresh')
+            .send({
+                refreshToken: "salah",
+            });
+
+        expect(result.status).toBe(401);
+        expect(result.body.errors).toBeDefined();
+    });
+});

@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import {redis} from "../config/redis.js";
+import {ResponseError} from "../errors/response.error.js";
 import {env} from "../config/env.js";
 
 function generateAccessToken(userId) {
@@ -23,9 +24,25 @@ async function storeRefreshToken(userId, token) {
     await redis.setex(key, 7 * 24 * 60 * 60, token); // 7 days
 }
 
+async function verifyRefreshToken(token) {
+    try {
+        const decoded = jwt.verify(token, env('JWT_REFRESH_SECRET'));
+        const key = `refresh_token:${decoded.userId}`;
+        const stored = await redis.get(key);
+
+        if (stored !== token) {
+            throw new ResponseError(401,'Invalid refresh token');
+        }
+
+        return decoded;
+    } catch (error) {
+        throw new ResponseError(401,'Invalid refresh token');
+    }
+}
 
 export default {
     generateAccessToken,
     generateRefreshToken,
     storeRefreshToken,
+    verifyRefreshToken,
 }
