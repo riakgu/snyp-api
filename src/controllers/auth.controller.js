@@ -11,4 +11,18 @@ async function register(req, res, next) {
     }
 }
 
-export default { register };
+async function login(req, res, next) {
+    try {
+        const result = await authService.login(req.body);
+        res.status(200).json({
+            data: result
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+export default {
+    register,
+    login,
+};
