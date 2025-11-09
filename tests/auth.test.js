@@ -1,6 +1,7 @@
 import supertest from "supertest";
 import app from "../src/app.js";
 import {createTestUser, removeTestUser} from "./utils.js";
+import {logger} from "../src/utils/logging.js";
 
 describe('POST /api/auth/register', function () {
 
@@ -209,6 +210,52 @@ describe('POST /api/auth/logout', function () {
     it('should reject if token is invalid', async () => {
         const result = await supertest(app)
             .post('/api/auth/logout')
+            .set('Authorization', `Bearer salah`);
+
+        expect(result.status).toBe(401);
+        expect(result.body.errors).toBeDefined();
+    });
+});
+
+describe('GET /api/auth/me', function () {
+    beforeEach(async () => {
+        await createTestUser();
+    });
+
+    afterEach(async () => {
+        await removeTestUser();
+    });
+
+    it('should can get auth user', async () => {
+        const login = await supertest(app)
+            .post('/api/auth/login')
+            .send({
+                email: "test@gmail.com",
+                password: "supersecret"
+            });
+
+        const result = await supertest(app)
+            .get('/api/auth/me')
+            .set('Authorization', `Bearer ${login.body.data.accessToken}`);
+
+        expect(result.status).toBe(200);
+        expect(result.body.data.id).toBeDefined();
+        expect(result.body.data.email).toBe("test@gmail.com");
+        expect(result.body.data.name).toBe("test");
+        expect(result.body.data.password).toBeUndefined();
+    });
+
+    it('should reject if token not provided', async () => {
+        const result = await supertest(app)
+            .get('/api/auth/me');
+
+        expect(result.status).toBe(401);
+        expect(result.body.errors).toBeDefined();
+    });
+
+    it('should reject if token is invalid', async () => {
+        const result = await supertest(app)
+            .get('/api/auth/me')
             .set('Authorization', `Bearer salah`);
 
         expect(result.status).toBe(401);

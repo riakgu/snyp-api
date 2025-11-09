@@ -1,4 +1,5 @@
 import {
+    getValidation,
     loginValidation,
     logoutValidation,
     refreshValidation,
@@ -84,10 +85,25 @@ async function refresh(req) {
 }
 
 async function logout(req) {
-    const { userId, token } = validate(logoutValidation, req);
+    const { userId, token } = req;
 
     await tokenService.blacklistToken(token);
     await tokenService.revokeUserTokens(userId);
+}
+
+async function get(req) {
+    const { userId } = req;
+
+    return prismaClient.user.findUnique({
+        where: {
+            id: userId
+        },
+        select: {
+            id: true,
+            email: true,
+            name: true,
+        }
+    })
 }
 
 export default {
@@ -95,4 +111,5 @@ export default {
     login,
     refresh,
     logout,
+    get
 };

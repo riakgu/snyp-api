@@ -45,9 +45,21 @@ async function logout(req, res, next) {
     }
 }
 
+async function get(req, res, next) {
+    try {
+        const result = await authService.get(req.auth);
+        res.status(200).json({
+            data: result
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     register,
     login,
     refresh,
     logout,
+    get
 };
