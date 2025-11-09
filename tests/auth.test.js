@@ -172,3 +172,46 @@ describe('POST /api/auth/refresh', function () {
         expect(result.body.errors).toBeDefined();
     });
 });
+
+describe('POST /api/auth/logout', function () {
+    beforeEach(async () => {
+        await createTestUser();
+    });
+
+    afterEach(async () => {
+        await removeTestUser();
+    });
+
+    it('should can logout', async () => {
+        const login = await supertest(app)
+            .post('/api/auth/login')
+            .send({
+                email: "test@gmail.com",
+                password: "supersecret"
+            });
+
+        const result = await supertest(app)
+            .post('/api/auth/logout')
+            .set('Authorization', `Bearer ${login.body.data.accessToken}`);
+
+        expect(result.status).toBe(200);
+        expect(result.body.message).toBe('success');
+    });
+
+    it('should reject if token not provided', async () => {
+        const result = await supertest(app)
+            .post('/api/auth/logout');
+
+        expect(result.status).toBe(401);
+        expect(result.body.errors).toBeDefined();
+    });
+
+    it('should reject if token is invalid', async () => {
+        const result = await supertest(app)
+            .post('/api/auth/logout')
+            .set('Authorization', `Bearer salah`);
+
+        expect(result.status).toBe(401);
+        expect(result.body.errors).toBeDefined();
+    });
+});

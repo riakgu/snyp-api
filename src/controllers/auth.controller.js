@@ -34,8 +34,20 @@ async function refresh(req, res, next) {
     }
 }
 
+async function logout(req, res, next) {
+    try {
+        await authService.logout(req.auth);
+        res.status(200).json({
+            message: "success"
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     register,
     login,
     refresh,
+    logout,
 };

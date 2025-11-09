@@ -1,4 +1,9 @@
-import {loginValidation, refreshValidation, registerValidation} from "../validations/auth.validation.js";
+import {
+    loginValidation,
+    logoutValidation,
+    refreshValidation,
+    registerValidation
+} from "../validations/auth.validation.js";
 import {prismaClient} from "../config/prisma.js";
 import {ResponseError} from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
@@ -78,8 +83,16 @@ async function refresh(req) {
     }
 }
 
+async function logout(req) {
+    const { userId, token } = validate(logoutValidation, req);
+
+    await tokenService.blacklistToken(token);
+    await tokenService.revokeUserTokens(userId);
+}
+
 export default {
     register,
     login,
     refresh,
+    logout,
 };

@@ -40,9 +40,30 @@ async function verifyRefreshToken(token) {
     }
 }
 
+async function blacklistToken(token) {
+    const decoded = jwt.decode(token);
+    const exp = decoded.exp - Math.floor(Date.now() / 1000);
+
+    if (exp > 0) {
+        await redis.setex(`blacklist:${token}`, exp, 'true');
+    }
+}
+
+async function isTokenBlacklisted(token) {
+    const result = await redis.get(`blacklist:${token}`);
+    return result !== null;
+}
+
+async function revokeUserTokens(userId) {
+    await redis.del(`refresh_token:${userId}`);
+}
+
 export default {
     generateAccessToken,
     generateRefreshToken,
     storeRefreshToken,
     verifyRefreshToken,
+    blacklistToken,
+    isTokenBlacklisted,
+    revokeUserTokens,
 }
