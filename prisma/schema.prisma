@@ -20,6 +20,24 @@ model User {
   name       String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  Link       Link[]
 
   @@map("users")
+}
+
+model Link {
+  id          String    @id @default(nanoid())
+  user_id     String?
+  title       String?
+  long_url    String
+  short_code  String    @unique
+  password    String?
+  expired_at  DateTime?
+  archived_at DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+  user        User?     @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@map("links")
 }
