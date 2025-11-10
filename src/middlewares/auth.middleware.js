@@ -5,7 +5,7 @@ import {logger} from "../utils/logging.js";
 import {ResponseError} from "../errors/response.error.js";
 
 
-export async function authMiddleware(req, res, next) {
+export async function requireAuth(req, res, next) {
     try {
         const authHeader = req.headers.authorization;
 
