@@ -18,3 +18,7 @@ export const createTestUser = async () => {
         }
     })
 }
+
+export const clearLinkTable = async () => {
+    await prismaClient.link.deleteMany({});
+};

@@ -12,7 +12,10 @@
   "jest": {
     "transform": {
       "^.+\\.[t|j]sx?$": "babel-jest"
-    }
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!nanoid/)"
+    ]
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
@@ -22,6 +25,7 @@
     "ioredis": "^5.8.2",
     "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
+    "nanoid": "^5.1.6",
     "winston": "^3.18.3"
   },
   "devDependencies": {
