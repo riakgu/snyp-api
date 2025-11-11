@@ -1,7 +1,5 @@
 import {
-    getValidation,
     loginValidation,
-    logoutValidation,
     refreshValidation,
     registerValidation
 } from "../validations/auth.validation.js";
@@ -10,7 +8,6 @@ import {ResponseError} from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
 import {validate} from "../utils/validators.js";
 import tokenService from "./token.service.js";
-import {logger} from "../utils/logging.js";
 
 async function register(req) {
     const { name, email, password } = validate(registerValidation, req.body);
