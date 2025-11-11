@@ -11,6 +11,18 @@ async function createLink(req, res, next) {
     }
 }
 
+async function getLinkByShortCode(req, res, next) {
+    try {
+        const result = await linkService.getLinkByShortCode(req);
+        res.status(200).json({
+            data: result
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     createLink,
+    getLinkByShortCode,
 }

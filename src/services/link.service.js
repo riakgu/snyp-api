@@ -19,7 +19,7 @@ async function createLink(req) {
         const shortCode = customCode ?? customAlphabet(alphabet, 5)();
 
         try {
-            return await prismaClient.link.create({
+            const link = await prismaClient.link.create({
                 data: {
                     user_id: isAuth ? req.auth.userId : null,
                     title: isAuth ? data.title : null,
@@ -34,9 +34,15 @@ async function createLink(req) {
                     title: true,
                     long_url: true,
                     short_code: true,
+                    password: true,
                     expired_at: true,
                 }
             });
+            return {
+                ...link,
+                has_password: !!link.password,
+                password: undefined,
+            }
         } catch (err) {
             if (err.code === 'P2002') {
                 if (customCode) {
@@ -53,6 +59,49 @@ async function createLink(req) {
     }
 }
 
+async function getLinkByShortCode(req) {
+    const { shortCode } = req.params;
+    const { password } = req.query;
+
+    const link = await prismaClient.link.findUnique({
+        where: { short_code: shortCode },
+        select: {
+            id: true,
+            user_id: true,
+            title: true,
+            long_url: true,
+            short_code: true,
+            password: true,
+            expired_at: true,
+        }
+    });
+
+    if (!link) {
+        throw new ResponseError(404, 'Link tidak ditemukan');
+    }
+
+    if (link.expired_at && new Date(link.expired_at) < new Date()) {
+        throw new ResponseError(410, 'Link sudah expired');
+    }
+
+    if (link.password) {
+        if (!password) {
+            throw new ResponseError(401, 'Password diperlukan');
+        }
+        const isValid = await bcrypt.compare(password, link.password);
+        if (!isValid) {
+            throw new ResponseError(401, 'Password salah');
+        }
+    }
+
+    return {
+        ...link,
+        has_password: !!link.password,
+        password: undefined,
+    };
+}
+
 export default {
     createLink,
+    getLinkByShortCode,
 }

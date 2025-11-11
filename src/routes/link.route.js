@@ -5,5 +5,6 @@ import {optionalAuth} from "../middlewares/auth.middleware.js";
 const router = Router();
 
 router.post("/", optionalAuth,linkController.createLink);
+router.get('/:shortCode', linkController.getLinkByShortCode);
 
 export default router;
