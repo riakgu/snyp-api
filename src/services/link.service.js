@@ -4,7 +4,6 @@ import {createLinkAuthValidation, createLinkValidation, updateLinkValidation} fr
 import {ResponseError} from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
 import {customAlphabet} from "nanoid";
-import * as logger from "winston";
 
 async function createLink(req) {
     const isAuth = !!req.auth;
@@ -62,7 +61,6 @@ async function createLink(req) {
 
 async function getLinkByShortCode(req) {
     const { shortCode } = req.params;
-    const { password } = req.query;
 
     const link = await prismaClient.link.findUnique({
         where: { short_code: shortCode },
@@ -81,24 +79,9 @@ async function getLinkByShortCode(req) {
         throw new ResponseError(404, 'Link not found');
     }
 
-    if (link.expired_at && new Date(link.expired_at) < new Date()) {
-        throw new ResponseError(410, 'Link has expired');
-    }
-
-    if (link.password) {
-        if (!password) {
-            throw new ResponseError(401, 'Password is required');
-        }
-        const isValid = await bcrypt.compare(password, link.password);
-        if (!isValid) {
-            throw new ResponseError(401, 'Incorrect password');
-        }
-    }
-
     return {
         ...link,
         has_password: !!link.password,
-        password: undefined,
     };
 }
 
@@ -147,8 +130,7 @@ async function updateLink(req) {
         if (err.code === 'P2025') {
             throw new ResponseError(404, 'Link not found');
         }
-        logger.error(err);
-        throw ResponseError(500, 'Internal Server Error');
+        throw new ResponseError(500, 'Internal Server Error');
     }
 }
 
@@ -167,8 +149,7 @@ async function deleteLink(req) {
         if (err.code === 'P2025') {
             throw new ResponseError(404, 'Link not found');
         }
-        logger.error(err);
-        throw ResponseError(500, 'Internal Server Error');
+        throw new ResponseError(500, 'Internal Server Error');
     }
 }
 
@@ -219,10 +200,33 @@ async function getLinks(req) {
     };
 }
 
+async function verifyLinkPassword(link, password) {
+    if (link.has_password) {
+        if (!password) {
+            throw new ResponseError(401, 'Password is required');
+        }
+
+        const isValid = await bcrypt.compare(password, link.password);
+        if (!isValid) {
+            throw new ResponseError(401, 'Incorrect password');
+        }
+    }
+    return true;
+}
+
+async function validateLinkAccess(link, password) {
+    if (link.expired_at && new Date(link.expired_at) < new Date()) {
+        throw new ResponseError(410, 'Link has expired');
+    }
+
+    await verifyLinkPassword(link, password);
+}
+
 export default {
     createLink,
     getLinkByShortCode,
     updateLink,
     deleteLink,
-    getLinks
+    getLinks,
+    validateLinkAccess
 }

@@ -14,6 +14,7 @@ async function createLink(req, res, next) {
 async function getLinkByShortCode(req, res, next) {
     try {
         const result = await linkService.getLinkByShortCode(req);
+        result.password = undefined;
         res.status(200).json({
             data: result
         });
@@ -57,10 +58,21 @@ async function getLinks(req, res, next) {
     }
 }
 
+async function redirectLink(req, res, next) {
+    try {
+        const result = await linkService.getLinkByShortCode(req);
+        await linkService.validateLinkAccess(result, req.query.password);
+        res.redirect(301, result.long_url);
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     createLink,
     getLinkByShortCode,
     updateLink,
     deleteLink,
-    getLinks
+    getLinks,
+    redirectLink,
 }
