@@ -200,7 +200,56 @@ describe('PATCH /api/links/:shortCode', function () {
 
         expect(result.status).toBe(404);
         expect(result.body.errors).toBeDefined();
+    });
+})
 
+describe('DELETE /api/links/:shortCode', function () {
+
+    beforeEach(async () => {
+        await createTestLink();
     });
 
+    afterEach(async () => {
+        await removeTestLink();
+    });
+
+    it('should can delete link', async () => {
+        const login = await supertest(app)
+            .post('/api/auth/login')
+            .send({
+                email: "test@gmail.com",
+                password: "supersecret"
+            });
+
+        const result = await supertest(app)
+            .delete('/api/links/test')
+            .set('Authorization', `Bearer ${login.body.data.accessToken}`);
+
+        expect(result.status).toBe(200);
+        expect(result.body.message).toBe('Link has been deleted successfully');
+    });
+
+    it('should reject if not auth', async () => {
+        const result = await supertest(app)
+            .delete(`/api/links/test`)
+
+        expect(result.status).toBe(401);
+        expect(result.body.errors).toBeDefined();
+    });
+
+    it('should reject if link not found', async () => {
+        const login = await supertest(app)
+            .post('/api/auth/login')
+            .send({
+                email: "test@gmail.com",
+                password: "supersecret"
+            });
+
+        const result = await supertest(app)
+            .delete('/api/links/etretter')
+            .set('Authorization', `Bearer ${login.body.data.accessToken}`);
+
+        expect(result.status).toBe(404);
+        expect(result.body.errors).toBeDefined();
+    });
 })

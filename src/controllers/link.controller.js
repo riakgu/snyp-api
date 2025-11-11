@@ -33,8 +33,20 @@ async function updateLink(req, res, next) {
     }
 }
 
+async function deleteLink(req, res, next) {
+    try {
+        await linkService.deleteLink(req);
+        res.status(200).json({
+            message: "Link has been deleted successfully"
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     createLink,
     getLinkByShortCode,
-    updateLink
+    updateLink,
+    deleteLink,
 }

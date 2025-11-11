@@ -7,5 +7,6 @@ const router = Router();
 router.post("/", optionalAuth, linkController.createLink);
 router.get('/:shortCode', linkController.getLinkByShortCode);
 router.patch('/:shortCode', requireAuth, linkController.updateLink);
+router.delete('/:shortCode', requireAuth, linkController.deleteLink);
 
 export default router;

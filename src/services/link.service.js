@@ -4,6 +4,7 @@ import {createLinkAuthValidation, createLinkValidation, updateLinkValidation} fr
 import {ResponseError} from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
 import {customAlphabet} from "nanoid";
+import * as logger from "winston";
 
 async function createLink(req) {
     const isAuth = !!req.auth;
@@ -146,7 +147,28 @@ async function updateLink(req) {
         if (err.code === 'P2025') {
             throw new ResponseError(404, 'Link not found');
         }
-        throw ResponseError(500, err.message);
+        logger.error(err);
+        throw ResponseError(500, 'Internal Server Error');
+    }
+}
+
+async function deleteLink(req) {
+    const { userId } = req.auth;
+    const { shortCode } = req.params;
+
+    try {
+        return await prismaClient.link.delete({
+            where: {
+                short_code: shortCode,
+                user_id: userId,
+            },
+        })
+    } catch (err) {
+        if (err.code === 'P2025') {
+            throw new ResponseError(404, 'Link not found');
+        }
+        logger.error(err);
+        throw ResponseError(500, 'Internal Server Error');
     }
 }
 
@@ -154,4 +176,5 @@ export default {
     createLink,
     getLinkByShortCode,
     updateLink,
+    deleteLink,
 }
