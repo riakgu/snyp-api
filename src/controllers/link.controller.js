@@ -22,7 +22,19 @@ async function getLinkByShortCode(req, res, next) {
     }
 }
 
+async function updateLink(req, res, next) {
+    try {
+        const result = await linkService.updateLink(req);
+        res.status(200).json({
+            data: result
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     createLink,
     getLinkByShortCode,
+    updateLink
 }

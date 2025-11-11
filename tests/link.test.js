@@ -1,4 +1,4 @@
-import {clearLinkTable, createTestUser, removeTestUser} from "./utils.js";
+import {clearLinkTable, createTestLink, createTestUser, removeTestLink, removeTestUser} from "./utils.js";
 import supertest from "supertest";
 import app from "../src/app.js";
 
@@ -136,4 +136,71 @@ describe('GET /api/links/:shortCode', function () {
         expect(result.body.data.has_password).toBe(true);
         expect(result.body.data.id).toBeDefined();
     });
+})
+
+describe('PATCH /api/links/:shortCode', function () {
+
+    beforeEach(async () => {
+        await createTestLink();
+    });
+
+    afterEach(async () => {
+        await removeTestLink();
+    });
+
+    it('should can update link', async () => {
+        const login = await supertest(app)
+            .post('/api/auth/login')
+            .send({
+                email: "test@gmail.com",
+                password: "supersecret"
+            });
+
+        const result = await supertest(app)
+            .patch('/api/links/test')
+            .send({
+                long_url: 'https://riakgu.com/',
+                title: 'riakgu test',
+            })
+            .set('Authorization', `Bearer ${login.body.data.accessToken}`);
+
+        expect(result.status).toBe(200);
+        expect(result.body.data.long_url).toBe("https://riakgu.com/");
+        expect(result.body.data.short_code).toBe('test');
+        expect(result.body.data.user_id).toBeDefined();
+        expect(result.body.data.title).toBe('riakgu test');
+        expect(result.body.data.expired_at).toBe(null);
+        expect(result.body.data.has_password).toBe(false);
+        expect(result.body.data.id).toBeDefined();
+    });
+
+    it('should reject if not auth', async () => {
+        const result = await supertest(app)
+            .patch(`/api/links/test`)
+
+        expect(result.status).toBe(401);
+        expect(result.body.errors).toBeDefined();
+    });
+
+    it('should reject if link not found', async () => {
+        const login = await supertest(app)
+            .post('/api/auth/login')
+            .send({
+                email: "test@gmail.com",
+                password: "supersecret"
+            });
+
+        const result = await supertest(app)
+            .patch('/api/links/etretter')
+            .send({
+                long_url: 'https://riakgu.com/',
+                title: 'riakgu test',
+            })
+            .set('Authorization', `Bearer ${login.body.data.accessToken}`);
+
+        expect(result.status).toBe(404);
+        expect(result.body.errors).toBeDefined();
+
+    });
+
 })

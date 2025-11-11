@@ -1,6 +1,6 @@
 import {validate} from "../utils/validators.js";
 import {prismaClient} from "../config/prisma.js";
-import {createLinkAuthValidation, createLinkValidation} from "../validations/link.validation.js";
+import {createLinkAuthValidation, createLinkValidation, updateLinkValidation} from "../validations/link.validation.js";
 import {ResponseError} from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
 import {customAlphabet} from "nanoid";
@@ -101,7 +101,57 @@ async function getLinkByShortCode(req) {
     };
 }
 
+async function updateLink(req) {
+    const { userId } = req.auth;
+    const { shortCode } = req.params;
+    const data = validate(updateLinkValidation, req.body);
+
+    const customCode = data.short_code ?? req.params.shortCode;
+    const passwordHash = data.password ? await bcrypt.hash(data.password, 10) : undefined;
+
+    try {
+        const link = await prismaClient.link.update({
+            where: {
+                short_code: shortCode,
+                user_id: userId,
+            },
+            data: {
+                title: data.title ?? undefined,
+                long_url: data.long_url ?? undefined,
+                short_code: customCode,
+                password: passwordHash,
+                expired_at: data.expired_at ?? undefined,
+            },
+            select: {
+                id: true,
+                user_id: true,
+                title: true,
+                long_url: true,
+                short_code: true,
+                password: true,
+                expired_at: true,
+            }
+        });
+        return {
+            ...link,
+            has_password: !!link.password,
+            password: undefined,
+        }
+    } catch (err) {
+        if (err.code === 'P2002') {
+            if (shortCode) {
+                throw new ResponseError(400, 'Short code already taken');
+            }
+        }
+        if (err.code === 'P2025') {
+            throw new ResponseError(404, 'Link not found');
+        }
+        throw ResponseError(500, err.message);
+    }
+}
+
 export default {
     createLink,
     getLinkByShortCode,
+    updateLink,
 }
