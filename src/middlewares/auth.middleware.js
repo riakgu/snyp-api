@@ -40,7 +40,7 @@ export async function requireAuth(req, res, next) {
             throw new ResponseError(401, 'Token has been expired')
         }
 
-        throw new ResponseError(500, 'Internal Server Error')
+        throw new ResponseError(401, err.message)
     }
 }
 
