@@ -196,7 +196,7 @@ describe('POST /api/auth/logout', function () {
             .set('Authorization', `Bearer ${login.body.data.accessToken}`);
 
         expect(result.status).toBe(200);
-        expect(result.body.message).toBe('success');
+        expect(result.body.message).toBe('Logged out successfully');
     });
 
     it('should reject if token not provided', async () => {

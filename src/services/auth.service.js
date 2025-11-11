@@ -13,7 +13,7 @@ import tokenService from "./token.service.js";
 import {logger} from "../utils/logging.js";
 
 async function register(req) {
-    const { name, email, password } = validate(registerValidation, req);
+    const { name, email, password } = validate(registerValidation, req.body);
 
     const user = await prismaClient.user.findUnique({
         where: {
@@ -22,7 +22,7 @@ async function register(req) {
     })
 
     if (user) {
-        throw new ResponseError(400, "email already exists");
+        throw new ResponseError(400, "Email already exists");
     }
 
     const hashed = await bcrypt.hash(password, 10);
@@ -34,6 +34,7 @@ async function register(req) {
             password: hashed,
         },
         select: {
+            id: true,
             email: true,
             name: true,
         }
@@ -41,7 +42,7 @@ async function register(req) {
 }
 
 async function login(req) {
-    const { email, password } = validate(loginValidation, req);
+    const { email, password } = validate(loginValidation, req.body);
 
     const user = await prismaClient.user.findUnique({
         where: {
@@ -54,7 +55,7 @@ async function login(req) {
     })
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-        throw new ResponseError(401, "email or password wrong");
+        throw new ResponseError(401, "Invalid credentials");
     }
 
     const accessToken = tokenService.generateAccessToken(user.id);
@@ -69,7 +70,7 @@ async function login(req) {
 }
 
 async function refresh(req) {
-    const { refreshToken } = validate(refreshValidation, req);
+    const { refreshToken } = validate(refreshValidation, req.body);
 
     const decoded = await tokenService.verifyRefreshToken(refreshToken);
 
@@ -85,14 +86,14 @@ async function refresh(req) {
 }
 
 async function logout(req) {
-    const { userId, token } = req;
+    const { userId, token } = req.auth;
 
     await tokenService.blacklistToken(token);
     await tokenService.revokeUserTokens(userId);
 }
 
 async function get(req) {
-    const { userId } = req;
+    const { userId } = req.auth;
 
     return prismaClient.user.findUnique({
         where: {
