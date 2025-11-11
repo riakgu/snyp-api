@@ -8,5 +8,6 @@ router.post("/", optionalAuth, linkController.createLink);
 router.get('/:shortCode', linkController.getLinkByShortCode);
 router.patch('/:shortCode', requireAuth, linkController.updateLink);
 router.delete('/:shortCode', requireAuth, linkController.deleteLink);
+router.get('/', requireAuth, linkController.getLinks);
 
 export default router;

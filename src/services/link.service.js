@@ -78,20 +78,20 @@ async function getLinkByShortCode(req) {
     });
 
     if (!link) {
-        throw new ResponseError(404, 'Link tidak ditemukan');
+        throw new ResponseError(404, 'Link not found');
     }
 
     if (link.expired_at && new Date(link.expired_at) < new Date()) {
-        throw new ResponseError(410, 'Link sudah expired');
+        throw new ResponseError(410, 'Link has expired');
     }
 
     if (link.password) {
         if (!password) {
-            throw new ResponseError(401, 'Password diperlukan');
+            throw new ResponseError(401, 'Password is required');
         }
         const isValid = await bcrypt.compare(password, link.password);
         if (!isValid) {
-            throw new ResponseError(401, 'Password salah');
+            throw new ResponseError(401, 'Incorrect password');
         }
     }
 
@@ -172,9 +172,57 @@ async function deleteLink(req) {
     }
 }
 
+async function getLinks(req) {
+    const { userId } = req.auth;
+
+    const page = parseInt(req.query.page ?? 1);
+    const limit = parseInt(req.query.limit ?? 10);
+    const skip = (page - 1) * limit;
+
+    const links = await prismaClient.link.findMany({
+        where: {user_id: userId,},
+        orderBy: { created_at: 'desc' },
+        skip: skip,
+        take: limit,
+        select: {
+            id: true,
+            user_id: true,
+            title: true,
+            long_url: true,
+            short_code: true,
+            password: true,
+            expired_at: true,
+        }
+    });
+
+    const total = await prismaClient.link.count({ where: { user_id: userId } });
+
+    if (total === 0) {
+        return {
+            message: 'You haven’t created any links yet',
+            data: [],
+        };
+    }
+
+    return {
+        data: links.map(link => ({
+            ...link,
+            has_password: !!link.password,
+            password: undefined,
+        })),
+        paging: {
+            page,
+            limit,
+            totalItem: total,
+            totalPage: Math.ceil(total / limit),
+        },
+    };
+}
+
 export default {
     createLink,
     getLinkByShortCode,
     updateLink,
     deleteLink,
+    getLinks
 }

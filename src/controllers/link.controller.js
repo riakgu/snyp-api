@@ -44,9 +44,23 @@ async function deleteLink(req, res, next) {
     }
 }
 
+async function getLinks(req, res, next) {
+    try {
+        const result = await linkService.getLinks(req);
+        res.status(200).json({
+            message: result.message ?? undefined,
+            data: result.data,
+            paging: result.paging
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     createLink,
     getLinkByShortCode,
     updateLink,
     deleteLink,
+    getLinks
 }
