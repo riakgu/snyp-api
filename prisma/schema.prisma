@@ -20,24 +20,37 @@ model User {
   name       String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  Link       Link[]
+  link       Link[]
 
   @@map("users")
 }
 
 model Link {
-  id          String    @id @default(nanoid())
+  id          String     @id @default(nanoid())
   user_id     String?
   title       String?
   long_url    String
-  short_code  String    @unique
+  short_code  String     @unique
   password    String?
   expired_at  DateTime?
   archived_at DateTime?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
   deleted_at  DateTime?
-  user        User?     @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  user        User?      @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  stats       LinkStats?
 
   @@map("links")
+}
+
+model LinkStats {
+  link_id       String   @id
+  total_visits  Int      @default(0)
+  unique_visits Int      @default(0)
+  qr_visits     Int      @default(0)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  link          Link     @relation(fields: [link_id], references: [id], onDelete: Cascade)
+
+  @@map("link_stats")
 }
