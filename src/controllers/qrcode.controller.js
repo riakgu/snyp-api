@@ -1,8 +1,8 @@
-import qrService from "../services/qr.service.js";
+import qrcodeService from "../services/qrcode.service.js";
 
 async function getQRCode(req, res, next) {
     try {
-        const result = await qrService.generateQRCode(req);
+        const result = await qrcodeService.generateQRCode(req);
         res.setHeader('Content-Type', 'image/png');
         res.setHeader('Cache-Control', 'public, max-age=604800');
         res.send(result.buffer);
@@ -13,7 +13,7 @@ async function getQRCode(req, res, next) {
 
 async function downloadQRCode(req, res, next) {
     try {
-        const result = await qrService.generateQRCode(req);
+        const result = await qrcodeService.generateQRCode(req);
         res.setHeader('Content-Disposition', `attachment; filename="qr-${result.short_code}.png"`);
         res.setHeader('Content-Type', 'image/png');
         res.send(result.buffer);
