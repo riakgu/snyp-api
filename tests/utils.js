@@ -48,7 +48,8 @@ export const createTestLink = async () => {
         data: {
             long_url: "https://riakgu.com",
             short_code: "test",
-            user_id: register.id
+            user_id: register.id,
+            stats: { create: {} }
         }
     })
 }

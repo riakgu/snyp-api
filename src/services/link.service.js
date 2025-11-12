@@ -27,6 +27,7 @@ async function createLink(req) {
                     short_code: shortCode,
                     password: isAuth ? passwordHash : null,
                     expired_at: isAuth ? data.expired_at : null,
+                    stats: { create: {} }
                 },
                 select: {
                     id: true,
