@@ -1,9 +1,10 @@
 import {validate} from "../utils/validators.js";
-import {prismaClient} from "../config/prisma.js";
+import {prismaClient} from "../config/database.js";
 import {createLinkAuthValidation, createLinkValidation, updateLinkValidation} from "../validations/link.validation.js";
 import {ResponseError} from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
-import {customAlphabet} from "nanoid";
+import cacheService from "./cache.service.js";
+import {generateShortCode} from "../utils/shortCode.js";
 
 async function createLink(req) {
     const isAuth = !!req.auth;
@@ -11,12 +12,11 @@ async function createLink(req) {
     const data = validate(schema, req.body);
     const customCode = data.short_code ?? null;
     const passwordHash = data.password ? await bcrypt.hash(data.password, 10) : null;
-    const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
     const MAX_RETRIES = 100;
 
     for (const attempt of Array(MAX_RETRIES).keys()) {
-        const shortCode = customCode ?? customAlphabet(alphabet, 5)();
+        const shortCode = customCode ?? generateShortCode(5);
 
         try {
             const link = await prismaClient.link.create({
@@ -39,11 +39,12 @@ async function createLink(req) {
                     expired_at: true,
                 }
             });
+
             return {
                 ...link,
                 has_password: !!link.password,
                 password: undefined,
-            }
+            };
         } catch (err) {
             if (err.code === 'P2002') {
                 if (customCode) {
@@ -63,6 +64,14 @@ async function createLink(req) {
 async function getLinkByShortCode(req) {
     const { shortCode } = req.params;
 
+    const cached = await cacheService.getCachedLink(shortCode);
+    if (cached) {
+        return {
+            ...cached,
+            has_password: !!cached.password,
+        };
+    }
+
     const link = await prismaClient.link.findUnique({
         where: { short_code: shortCode },
         select: {
@@ -79,6 +88,8 @@ async function getLinkByShortCode(req) {
     if (!link) {
         throw new ResponseError(404, 'Link not found');
     }
+
+    await cacheService.cacheLink(shortCode, link);
 
     return {
         ...link,
@@ -117,16 +128,22 @@ async function updateLink(req) {
                 expired_at: true,
             }
         });
+
+        await cacheService.invalidateLinkCache(shortCode);
+        await cacheService.invalidateQRCache(shortCode);
+
+        if (customCode !== shortCode) {
+            await cacheService.invalidateLinkCache(customCode);
+        }
+
         return {
             ...link,
             has_password: !!link.password,
             password: undefined,
-        }
+        };
     } catch (err) {
         if (err.code === 'P2002') {
-            if (shortCode) {
-                throw new ResponseError(400, 'Short code already taken');
-            }
+            throw new ResponseError(400, 'Short code already taken');
         }
         if (err.code === 'P2025') {
             throw new ResponseError(404, 'Link not found');
@@ -140,12 +157,19 @@ async function deleteLink(req) {
     const { shortCode } = req.params;
 
     try {
-        return await prismaClient.link.delete({
+        const result = await prismaClient.link.delete({
             where: {
                 short_code: shortCode,
                 user_id: userId,
             },
-        })
+        });
+
+        await cacheService.invalidateLinkCache(shortCode);
+        await cacheService.invalidateQRCache(shortCode);
+        await cacheService.clearPendingStats(shortCode);
+        await cacheService.removeFromPendingFlush(shortCode);
+
+        return result;
     } catch (err) {
         if (err.code === 'P2025') {
             throw new ResponseError(404, 'Link not found');
@@ -162,7 +186,7 @@ async function getLinks(req) {
     const skip = (page - 1) * limit;
 
     const links = await prismaClient.link.findMany({
-        where: {user_id: userId,},
+        where: { user_id: userId },
         orderBy: { created_at: 'desc' },
         skip: skip,
         take: limit,
@@ -181,7 +205,7 @@ async function getLinks(req) {
 
     if (total === 0) {
         return {
-            message: 'You haven’t created any links yet',
+            message: 'You haven\'t created any links yet',
             data: [],
         };
     }
@@ -215,12 +239,12 @@ async function verifyLinkPassword(link, password) {
     return true;
 }
 
-async function validateLinkAccess(link, password) {
+async function validateLinkAccess(link) {
     if (link.expired_at && new Date(link.expired_at) < new Date()) {
         throw new ResponseError(410, 'Link has expired');
     }
 
-    await verifyLinkPassword(link, password);
+    return true;
 }
 
 export default {
@@ -229,5 +253,6 @@ export default {
     updateLink,
     deleteLink,
     getLinks,
-    validateLinkAccess
+    validateLinkAccess,
+    verifyLinkPassword
 }

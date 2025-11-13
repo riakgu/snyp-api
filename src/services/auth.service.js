@@ -1,9 +1,5 @@
-import {
-    loginValidation,
-    refreshValidation,
-    registerValidation
-} from "../validations/auth.validation.js";
-import {prismaClient} from "../config/prisma.js";
+import {loginValidation, refreshValidation, registerValidation} from "../validations/auth.validation.js";
+import {prismaClient} from "../config/database.js";
 import {ResponseError} from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
 import {validate} from "../utils/validators.js";
@@ -12,74 +8,63 @@ import tokenService from "./token.service.js";
 async function register(req) {
     const { name, email, password } = validate(registerValidation, req.body);
 
-    const user = await prismaClient.user.findUnique({
-        where: {
-            email: email,
-        }
-    })
+    const passwordHashed = await bcrypt.hash(password, 10);
 
-    if (user) {
-        throw new ResponseError(400, "Email already exists");
+    try {
+        return await prismaClient.user.create({
+            data: {
+                name,
+                email,
+                password: passwordHashed,
+            },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+            },
+        });
+    } catch (err) {
+        if (err.code === 'P2002') {
+            throw new ResponseError(400, "Email already exists");
+        }
+        throw err;
     }
 
-    const hashed = await bcrypt.hash(password, 10);
-
-    return prismaClient.user.create({
-        data: {
-            name,
-            email,
-            password: hashed,
-        },
-        select: {
-            id: true,
-            email: true,
-            name: true,
-        }
-    })
 }
 
 async function login(req) {
     const { email, password } = validate(loginValidation, req.body);
 
     const user = await prismaClient.user.findUnique({
-        where: {
-            email: email,
-        },
+        where: { email },
         select: {
             id: true,
+            email: true,
+            name: true,
             password: true,
-        }
-    })
+        },
+    });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
         throw new ResponseError(401, "Invalid credentials");
     }
 
-    const accessToken = tokenService.generateAccessToken(user.id);
-    const refreshToken = tokenService.generateRefreshToken(user.id);
-
-    await tokenService.storeRefreshToken(user.id, refreshToken);
+    const tokens = await tokenService.generateTokenPair(user.id);
 
     return {
-        accessToken,
-        refreshToken,
+        user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+        },
+        ...tokens,
     }
 }
 
 async function refresh(req) {
     const { refreshToken } = validate(refreshValidation, req.body);
 
-    const decoded = await tokenService.verifyRefreshToken(refreshToken);
-
-    const newAccessToken = tokenService.generateAccessToken(decoded.userId);
-    const newRefreshToken = tokenService.generateRefreshToken(decoded.userId);
-
-    await tokenService.storeRefreshToken(decoded.userId, newRefreshToken);
-
-    return {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-    }
+    return await tokenService.refreshAccessToken(refreshToken);
 }
 
 async function logout(req) {
@@ -93,9 +78,7 @@ async function get(req) {
     const { userId } = req.auth;
 
     return prismaClient.user.findUnique({
-        where: {
-            id: userId
-        },
+        where: { id: userId },
         select: {
             id: true,
             email: true,

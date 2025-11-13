@@ -148,7 +148,6 @@ describe('POST /api/auth/refresh', function () {
 
         expect(result.status).toBe(200);
         expect(result.body.data.accessToken).toBeDefined();
-        expect(result.body.data.refreshToken).toBeDefined();
     });
 
     it('should reject if token is invalid', async () => {

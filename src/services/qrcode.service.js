@@ -1,13 +1,13 @@
 import QRCode from "qrcode";
-import {redis} from "../config/redis.js";
-import {prismaClient} from "../config/prisma.js";
+import {prismaClient} from "../config/database.js";
 import {ResponseError} from "../errors/response.error.js";
+import cacheService from "./cache.service.js";
+import config from "../config/index.js"
 
 async function generateQRCode(req) {
     const { shortCode } = req.params;
-    const baseUrl = `${req.protocol}://${req.get('host')}`
-    const fullUrl = `${baseUrl}/${shortCode}?qr=1`;
-    const cacheKey = `qr:${shortCode}`;
+
+    const fullUrl = `${config.app.baseUrl}/${shortCode}?qr=1`;
 
     const link = await prismaClient.link.findUnique({
         where: { short_code: shortCode },
@@ -18,7 +18,7 @@ async function generateQRCode(req) {
     }
 
     try {
-        const cached = await redis.getBuffer(cacheKey);
+        const cached = await cacheService.getCachedQRCode(shortCode);
         if (cached) {
             return {
                 short_code: shortCode,
@@ -33,7 +33,7 @@ async function generateQRCode(req) {
             margin: 1,
         });
 
-        await redis.setex(cacheKey, 60 * 60 * 24 * 7, qrData);
+        await cacheService.cacheQRCode(shortCode, qrData);
 
         return {
             short_code: shortCode,
@@ -44,11 +44,6 @@ async function generateQRCode(req) {
     }
 }
 
-async function invalidateQRCache(shortCode) {
-    await redis.del(`qr:${shortCode}`);
-}
-
 export default {
     generateQRCode,
-    invalidateQRCache,
 }

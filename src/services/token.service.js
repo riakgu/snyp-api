@@ -1,69 +1,125 @@
 import jwt from "jsonwebtoken";
-import {redis} from "../config/redis.js";
-import {ResponseError} from "../errors/response.error.js";
-import {env} from "../config/env.js";
+import { ResponseError } from "../errors/response.error.js";
+import config from "../config/index.js";
+import cacheService from "./cache.service.js";
+import {logger} from "../utils/logging.js";
 
 function generateAccessToken(userId) {
     return jwt.sign(
         { userId, type: 'access' },
-        env('JWT_ACCESS_SECRET'),
-        { expiresIn: '15m' }
+        config.jwt.accessSecret,
+        { expiresIn: config.jwt.accessExpire }
     );
 }
 
 function generateRefreshToken(userId) {
     return jwt.sign(
         { userId, type: 'refresh' },
-        env('JWT_REFRESH_SECRET'),
-        { expiresIn: '7d' }
+        config.jwt.refreshSecret,
+        { expiresIn: config.jwt.refreshExpire }
     );
 }
 
 async function storeRefreshToken(userId, token) {
-    const key = `refresh_token:${userId}`;
-    await redis.setex(key, 7 * 24 * 60 * 60, token); // 7 days
+    return cacheService.storeRefreshToken(userId, token);
 }
 
 async function verifyRefreshToken(token) {
     try {
-        const decoded = jwt.verify(token, env('JWT_REFRESH_SECRET'));
-        const key = `refresh_token:${decoded.userId}`;
-        const stored = await redis.get(key);
+        const decoded = jwt.verify(token, config.jwt.refreshSecret);
+
+        if (decoded.type !== 'refresh') {
+            throw new ResponseError(401, 'Invalid token type');
+        }
+
+        const stored = await cacheService.getRefreshToken(decoded.userId);
 
         if (stored !== token) {
-            throw new ResponseError(401,'Invalid refresh token');
+            throw new ResponseError(401, 'Invalid refresh token');
         }
 
         return decoded;
     } catch (error) {
-        throw new ResponseError(401,'Invalid refresh token');
+        if (error instanceof ResponseError) {
+            throw error;
+        }
+        throw new ResponseError(401, 'Invalid or expired refresh token');
+    }
+}
+
+function verifyAccessToken(token) {
+    try {
+        const decoded = jwt.verify(token, config.jwt.accessSecret);
+
+        if (decoded.type !== 'access') {
+            throw new ResponseError(401, 'Invalid token type');
+        }
+
+        return decoded;
+    } catch (error) {
+        if (error instanceof ResponseError) {
+            throw error;
+        }
+        throw new ResponseError(401, 'Invalid or expired access token');
     }
 }
 
 async function blacklistToken(token) {
-    const decoded = jwt.decode(token);
-    const exp = decoded.exp - Math.floor(Date.now() / 1000);
+    try {
+        const decoded = jwt.decode(token);
 
-    if (exp > 0) {
-        await redis.setex(`blacklist:${token}`, exp, 'true');
+        if (!decoded || !decoded.exp) {
+            return;
+        }
+
+        const exp = decoded.exp - Math.floor(Date.now() / 1000);
+
+        if (exp > 0) {
+            await cacheService.blacklistToken(token, exp);
+        }
+    } catch (error) {
+        logger.error('Error blacklisting token:', error);
     }
 }
 
 async function isTokenBlacklisted(token) {
-    const result = await redis.get(`blacklist:${token}`);
-    return result !== null;
+    return cacheService.isTokenBlacklisted(token);
 }
 
 async function revokeUserTokens(userId) {
-    await redis.del(`refresh_token:${userId}`);
+    return cacheService.deleteRefreshToken(userId);
+}
+
+async function generateTokenPair(userId) {
+    const accessToken = generateAccessToken(userId);
+    const refreshToken = generateRefreshToken(userId);
+
+    await storeRefreshToken(userId, refreshToken);
+
+    return {
+        accessToken,
+        refreshToken,
+    };
+}
+
+async function refreshAccessToken(refreshToken) {
+    const decoded = await verifyRefreshToken(refreshToken);
+    const newAccessToken = generateAccessToken(decoded.userId);
+
+    return {
+        accessToken: newAccessToken,
+    };
 }
 
 export default {
     generateAccessToken,
     generateRefreshToken,
+    generateTokenPair,
     storeRefreshToken,
+    verifyAccessToken,
     verifyRefreshToken,
+    refreshAccessToken,
     blacklistToken,
     isTokenBlacklisted,
     revokeUserTokens,
-}
+};
