@@ -55,14 +55,12 @@ export async function optionalAuth(req, res, next) {
         const token = authHeader.substring(7);
 
         if (!token) {
-            req.auth = null;
-            return next();
+            throw new ResponseError(401, 'Invalid token')
         }
 
         const isBlacklisted = await tokenService.isTokenBlacklisted(token);
         if (isBlacklisted) {
-            req.auth = null;
-            return next();
+            throw new ResponseError(401,'Token has been revoked');
         }
 
         const decoded = jwt.verify(token, config.jwt.accessSecret);
@@ -74,7 +72,14 @@ export async function optionalAuth(req, res, next) {
 
         next();
     } catch (err) {
-        req.auth = null;
-        next();
+        if (err.name === 'JsonWebTokenError') {
+            throw new ResponseError(401, 'Invalid token')
+        }
+
+        if (err.name === 'TokenExpiredError') {
+            throw new ResponseError(401, 'Token has been expired')
+        }
+
+        throw new ResponseError(401, err.message)
     }
 }
