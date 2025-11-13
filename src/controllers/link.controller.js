@@ -15,6 +15,7 @@ async function getLinkByShortCode(req, res, next) {
     try {
         const result = await linkService.getLinkByShortCode(req);
         result.password = undefined;
+        result.archived_at = undefined;
         res.status(200).json({
             data: result
         });
@@ -58,10 +59,48 @@ async function getLinks(req, res, next) {
     }
 }
 
+async function archiveLink(req, res, next) {
+    try {
+        await linkService.archiveLink(req);
+        res.status(200).json({
+            message: "Link has been archived successfully"
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function getArchivedLinks(req, res, next) {
+    try {
+        const result = await linkService.getArchivedLinks(req);
+        res.status(200).json({
+            message: result.message ?? undefined,
+            data: result.data,
+            paging: result.paging
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function unarchiveLink(req, res, next) {
+    try {
+        await linkService.unarchiveLink(req);
+        res.status(200).json({
+            message: "Link has been unarchived successfully"
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     createLink,
     getLinkByShortCode,
     updateLink,
     deleteLink,
     getLinks,
+    archiveLink,
+    getArchivedLinks,
+    unarchiveLink
 }

@@ -37,13 +37,16 @@ async function createLink(req) {
                     short_code: true,
                     password: true,
                     expired_at: true,
+                    archived_at: true
                 }
             });
 
             return {
                 ...link,
                 has_password: !!link.password,
+                is_archived: !!link.archived_at,
                 password: undefined,
+                archived_at: undefined,
             };
         } catch (err) {
             if (err.code === 'P2002') {
@@ -69,6 +72,7 @@ async function getLinkByShortCode(req) {
         return {
             ...cached,
             has_password: !!cached.password,
+            is_archived: !!cached.archived_at,
         };
     }
 
@@ -82,6 +86,7 @@ async function getLinkByShortCode(req) {
             short_code: true,
             password: true,
             expired_at: true,
+            archived_at: true,
         }
     });
 
@@ -94,6 +99,7 @@ async function getLinkByShortCode(req) {
     return {
         ...link,
         has_password: !!link.password,
+        is_archived: !!link.archived_at,
     };
 }
 
@@ -126,6 +132,7 @@ async function updateLink(req) {
                 short_code: true,
                 password: true,
                 expired_at: true,
+                archived_at: true,
             }
         });
 
@@ -139,7 +146,9 @@ async function updateLink(req) {
         return {
             ...link,
             has_password: !!link.password,
+            is_archived: !!link.archived_at,
             password: undefined,
+            archived_at: undefined,
         };
     } catch (err) {
         if (err.code === 'P2002') {
@@ -186,7 +195,7 @@ async function getLinks(req) {
     const skip = (page - 1) * limit;
 
     const links = await prismaClient.link.findMany({
-        where: { user_id: userId },
+        where: { user_id: userId, archived_at: null},
         orderBy: { created_at: 'desc' },
         skip: skip,
         take: limit,
@@ -198,10 +207,11 @@ async function getLinks(req) {
             short_code: true,
             password: true,
             expired_at: true,
+            archived_at: true,
         }
     });
 
-    const total = await prismaClient.link.count({ where: { user_id: userId } });
+    const total = await prismaClient.link.count({ where: { user_id: userId, archived_at: null} });
 
     if (total === 0) {
         return {
@@ -214,7 +224,9 @@ async function getLinks(req) {
         data: links.map(link => ({
             ...link,
             has_password: !!link.password,
+            is_archived: !!link.archived_at,
             password: undefined,
+            archived_at: undefined,
         })),
         paging: {
             page,
@@ -240,11 +252,130 @@ async function verifyLinkPassword(link, password) {
 }
 
 async function validateLinkAccess(link) {
+    if (link.is_archived) {
+        throw new ResponseError(410, 'Link has archived');
+    }
+
     if (link.expired_at && new Date(link.expired_at) < new Date()) {
         throw new ResponseError(410, 'Link has expired');
     }
 
     return true;
+}
+
+async function archiveLink(req) {
+    const { userId } = req.auth;
+    const { shortCode } = req.params;
+
+    try {
+        const result = await prismaClient.link.update({
+            where: {
+                short_code: shortCode,
+                user_id: userId,
+            },
+            data: {
+                archived_at: new Date(),
+            }
+        });
+
+        await cacheService.invalidateLinkCache(shortCode);
+        await cacheService.invalidateQRCache(shortCode);
+        await cacheService.clearPendingStats(shortCode);
+        await cacheService.removeFromPendingFlush(shortCode);
+
+        return result;
+    } catch (err) {
+        if (err.code === 'P2025') {
+            throw new ResponseError(404, 'Link not found');
+        }
+        throw new ResponseError(500, 'Internal Server Error');
+    }
+}
+
+async function getArchivedLinks(req) {
+    const { userId } = req.auth;
+
+    const page = parseInt(req.query.page ?? 1);
+    const limit = parseInt(req.query.limit ?? 10);
+    const skip = (page - 1) * limit;
+
+    const links = await prismaClient.link.findMany({
+        where: {
+            user_id: userId,
+            archived_at: {not: null}
+        },
+        orderBy: { created_at: 'desc' },
+        skip: skip,
+        take: limit,
+        select: {
+            id: true,
+            user_id: true,
+            title: true,
+            long_url: true,
+            short_code: true,
+            password: true,
+            expired_at: true,
+            archived_at: true,
+        }
+    });
+
+    const total = await prismaClient.link.count({
+        where: {
+            user_id: userId,
+            archived_at: {not: null}
+        }});
+
+    if (total === 0) {
+        return {
+            message: 'You don\'t have any archived links',
+            data: [],
+        };
+    }
+
+    return {
+        data: links.map(link => ({
+            ...link,
+            has_password: !!link.password,
+            is_archived: !!link.archived_at,
+            password: undefined,
+            archived_at: undefined,
+        })),
+        paging: {
+            page,
+            limit,
+            totalItem: total,
+            totalPage: Math.ceil(total / limit),
+        },
+    };
+}
+
+async function unarchiveLink(req) {
+    const { userId } = req.auth;
+    const { shortCode } = req.params;
+
+    try {
+        const result = await prismaClient.link.update({
+            where: {
+                short_code: shortCode,
+                user_id: userId,
+            },
+            data: {
+                archived_at: null,
+            }
+        });
+
+        await cacheService.invalidateLinkCache(shortCode);
+        await cacheService.invalidateQRCache(shortCode);
+        await cacheService.clearPendingStats(shortCode);
+        await cacheService.removeFromPendingFlush(shortCode);
+
+        return result;
+    } catch (err) {
+        if (err.code === 'P2025') {
+            throw new ResponseError(404, 'Link not found');
+        }
+        throw new ResponseError(500, 'Internal Server Error');
+    }
 }
 
 export default {
@@ -253,6 +384,9 @@ export default {
     updateLink,
     deleteLink,
     getLinks,
+    archiveLink,
+    getArchivedLinks,
+    unarchiveLink,
     validateLinkAccess,
     verifyLinkPassword
 }
