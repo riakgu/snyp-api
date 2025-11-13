@@ -1,122 +1,173 @@
-# Auth API Spec
+# Authentication API Documentation
 
-## Register API
+## Overview
+The service uses JWT-based authentication with access and refresh tokens. Access tokens are short-lived for security, while refresh tokens allow obtaining new access tokens without re-login.
 
-Endpoint: POST /api/auth/register
+### Token Strategy
+- **Access Token**: Short-lived
+- **Refresh Token**: Long-lived
+- **Token Blacklisting**: Supports immediate logout and security
+- **User Token Revocation**: All user tokens can be revoked at once
 
-Request Body:
+---
+
+
+### 1. Register
+**POST** `/auth/register`
+
+Creates a new user account.
+
+#### Request Body
 ```json
 {
-  "email" : "info@riakgu.com",
-  "password": "supersecret",
-  "name": "riakgu"
-}
-```
-Response Body Success:
-```json
-{
-  "data": {
-    "email" : "info@riakgu.com",
-    "name": "riakgu"
-  }
-}
-```
-
-Response Body Error:
-```json
-{
-  "errors": "email already registered"
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "SecurePass123!"
 }
 ```
 
-## Login API
+#### Validation Rules
+- **name**: Required, string
+- **email**: Required, valid email format, must be unique
+- **password**: Required, minimum length (defined in validation)
 
-Endpoint: POST /api/auth/login
-
-Request Body:
+#### Response (201)
 ```json
 {
-  "email" : "info@riakgu.com",
-  "password": "supersecret"
-}
-```
-Response Body Success:
-```json
-{
-  "data": {
-    "access_token" : "token",
-    "refresh_token" : "token"
-  }
+  "id": "nanoid",
+  "email": "john@example.com",
+  "name": "John Doe"
 }
 ```
 
-Response Body Error:
+#### Error Responses
+- `400` - Email already exists
+- `400` - Validation failed (invalid format)
+
+
+---
+
+### 2. Login
+**POST** `/auth/login`
+
+Authenticates user and returns access + refresh tokens.
+
+#### Request Body
 ```json
 {
-  "errors": "Email or password wrong"
+  "email": "john@example.com",
+  "password": "SecurePass123!"
 }
 ```
 
-## Refresh Token API
-
-Endpoint: POST /api/auth/refresh
-
-Header:
-- Authorization: token
-
-Response Body Success:
+#### Response (200)
 ```json
 {
-  "data": {
-    "access_token": "token",
-    "refresh_token": "token"
-  }
+  "user": {
+    "id": "nanoid",
+    "email": "john@example.com",
+    "name": "John Doe"
+  },
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
-Response Body Error:
+#### Response Fields
+- **user**: User profile information
+- **accessToken**: Short-lived JWT for API requests
+- **refreshToken**: Long-lived JWT for obtaining new access tokens
+
+#### Error Responses
+- `401` - Invalid credentials (wrong email or password)
+- `400` - Validation failed
+
+---
+
+### 3. Refresh Token
+**POST** `/auth/refresh`
+
+Obtains a new access token using a valid refresh token.
+
+#### Request Body
 ```json
 {
-  "errors": "Unauthorized"
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
-## Get Auth API
-
-Endpoint: GET /api/auth/me
-
-Header:
-- Authorization: token
-
-Response Body Success:
+#### Response (200)
 ```json
 {
-  "user_id": "uuid"
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
 }
 ```
 
-Response Body Error:
+#### Error Responses
+- `401` - Invalid or expired refresh token
+- `401` - Token revoked or blacklisted
+- `400` - Validation failed
+
+---
+
+### 4. Logout
+**POST** `/auth/logout`
+
+Invalidates current session and revokes all user tokens.
+
+#### Authentication
+- **Required**: Yes (Bearer token)
+
+#### Request Headers
+```
+Authorization: Bearer <access_token>
+```
+
+#### Request Body
+None required (user info extracted from token)
+
+#### Response (200)
 ```json
 {
-  "errors": "Unauthorized"
+  "message": "Logged out successfully"
 }
 ```
 
-## Logout API
-Endpoint: DELETE /api/auth/logout
+#### What Happens
+1. Current access token added to blacklist
+2. All refresh tokens for user revoked
+3. User must login again to get new tokens
 
-Header:
-- Authorization: token
+#### Error Responses
+- `401` - Invalid or missing access token
+- `401` - Token already blacklisted
 
-Response Body Success:
+---
+
+### 5. Get Current User
+**GET** `/auth/me`
+
+Retrieves current authenticated user's profile.
+
+#### Authentication
+- **Required**: Yes (Bearer token)
+
+#### Request Headers
+```
+Authorization: Bearer <access_token>
+```
+
+#### Response (200)
 ```json
 {
-  "message": "success"
+  "id": "nanoid",
+  "email": "john@example.com",
+  "name": "John Doe"
 }
 ```
-Response Body Error:
-```json
-{
-  "errors": "Unauthorized"
-}
-```
+
+#### Error Responses
+- `401` - Invalid or missing access token
+- `404` - User not found (deleted account)
+
+---
