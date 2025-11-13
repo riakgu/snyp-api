@@ -1,4 +1,4 @@
-import {prismaClient} from "../src/config/prisma.js";
+import {prismaClient} from "../src/config/database.js";
 import * as bcrypt from "bcrypt";
 
 export const clearUserTable = async () => {

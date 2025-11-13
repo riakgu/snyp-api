@@ -1,7 +1,6 @@
 import tokenService from "../services/token.service.js";
 import jwt from "jsonwebtoken";
-import {env} from "../config/env.js";
-import {logger} from "../utils/logging.js";
+import config from "../config/index.js";
 import {ResponseError} from "../errors/response.error.js";
 
 export async function requireAuth(req, res, next) {
@@ -23,7 +22,7 @@ export async function requireAuth(req, res, next) {
             throw new ResponseError(401,'Token has been revoked');
         }
 
-        const decoded = jwt.verify(token, env('JWT_ACCESS_SECRET'));
+        const decoded = jwt.verify(token, config.jwt.accessSecret);
 
         req.auth = {
             userId: decoded.userId,
@@ -66,7 +65,7 @@ export async function optionalAuth(req, res, next) {
             return next();
         }
 
-        const decoded = jwt.verify(token, env('JWT_ACCESS_SECRET'));
+        const decoded = jwt.verify(token, config.jwt.accessSecret);
 
         req.auth = {
             userId: decoded.userId,

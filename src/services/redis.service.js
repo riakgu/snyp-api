@@ -1,4 +1,4 @@
-import { redis } from '../config/redis.js';
+import { redis } from '../config/cache.js';
 import {logger} from "../utils/logging.js";
 
 async function get(key) {
