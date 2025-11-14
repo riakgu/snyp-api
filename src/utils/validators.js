@@ -1,6 +1,6 @@
 import {ResponseError} from "../errors/response.error.js";
 
-export function validate(schema, request) {
+export function validate(schema, request = {}) {
     const result = schema.validate(request, {
         abortEarly: false,
         allowUnknown: false
