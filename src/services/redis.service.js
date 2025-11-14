@@ -111,6 +111,24 @@ function pipeline() {
     return redis.pipeline();
 }
 
+async function getTTL(key) {
+    try {
+        return await redis.ttl(key);
+    } catch (error) {
+        console.error(`Redis TTL error for key: ${key}`, error);
+        return -1;
+    }
+}
+
+async function incr(key) {
+    try {
+        return await redis.incr(key);
+    } catch (error) {
+        console.error(`Redis INCR error for key: ${key}`, error);
+        return null;
+    }
+}
+
 export default {
     get,
     getBuffer,
@@ -125,4 +143,6 @@ export default {
     srem,
     expire,
     pipeline,
+    getTTL,
+    incr
 };

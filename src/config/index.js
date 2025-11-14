@@ -16,6 +16,17 @@ const config = {
         accessExpire: process.env.JWT_ACCESS_EXPIRE,
         refreshExpire: process.env.JWT_REFRESH_EXPIRE,
     },
+
+    rateLimit: {
+        global: {
+            limit: 100,
+            windowSeconds: 60,
+        },
+        auth: {
+            limit: 5,
+            windowSeconds: 300,
+        },
+    }
 };
 
 export default config;
