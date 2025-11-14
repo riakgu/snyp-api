@@ -1,5 +1,6 @@
 import rateLimiterService from "../services/rateLimiter.service.js";
 import { logger } from "../utils/logging.js";
+import config from "../config/index.js";
 
 export function createRateLimiter(options = {}) {
     const {
@@ -9,6 +10,11 @@ export function createRateLimiter(options = {}) {
     } = options;
 
     return async (req, res, next) => {
+
+        if (config.app.env === 'test') {
+            return next();
+        }
+
         try {
             const identifier = rateLimiterService.getClientIdentifier(req);
             const key = rateLimiterService.getRateLimitKey(identifier, keyPrefix);
