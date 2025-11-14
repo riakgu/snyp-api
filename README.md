@@ -1,6 +1,5 @@
 # Snyp API
 
----
 
 ## Overview
 Snyp API is a fast and secure URL shortening service designed for modern applications.
@@ -9,7 +8,6 @@ It includes features such as link shortening, QR code generation, password-prote
 ### Built With
 [![Node.js][Node.js]][Node-url] [![Express][Express.js]][Express-url] [![Prisma][Prisma]][Prisma-url] [![PostgreSQL][PostgreSQL]][PostgreSQL-url] [![Redis][Redis]][Redis-url] [![JWT][JWT]][JWT-url]
 
----
 
 ## Documentation
 
@@ -18,8 +16,6 @@ Full API documentation is available in the **`docs/`** directory.
 You can also explore and test the API using the Postman collection below:
 
 [![Postman][Postman]][Postman-url]
-
----
 
 
 ## Getting Started
@@ -84,9 +80,6 @@ You can also explore and test the API using the Postman collection below:
    # The API will be available at `http://localhost:3000`
    ```
 
----
-
-
 
 ## Running Tests
 
@@ -102,9 +95,11 @@ Then run the tests:
 npm run test
 ```
 
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 
 [Postman]: https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=Postman&logoColor=white
 [Postman-url]: https://documenter.getpostman.com/view/29055658/2sB3WvNJRm
