@@ -6,9 +6,13 @@ import linkRoute from "./routes/link.route.js";
 import redirectRoute from "./routes/redirect.route.js";
 import {createRateLimiter} from "./middlewares/rateLimiter.middleware.js";
 import config from "./config/index.js";
+import helmet from "helmet";
+import cors from 'cors';
 
 const app = express();
 
+app.use(helmet());
+app.use(cors());
 app.use(express.json());
 
 app.use('/api', createRateLimiter({
