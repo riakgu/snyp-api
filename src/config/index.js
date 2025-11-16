@@ -26,7 +26,11 @@ const config = {
             limit: 5,
             windowSeconds: 300,
         },
-    }
+    },
+
+    rabbitMQ: {
+        url: process.env.RABBITMQ_URL,
+    },
 };
 
 export default config;

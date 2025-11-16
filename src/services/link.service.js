@@ -175,8 +175,6 @@ async function deleteLink(req) {
 
         await cacheService.invalidateLinkCache(shortCode);
         await cacheService.invalidateQRCache(shortCode);
-        await cacheService.clearPendingStats(shortCode);
-        await cacheService.removeFromPendingFlush(shortCode);
 
         return result;
     } catch (err) {
@@ -237,20 +235,6 @@ async function getLinks(req) {
     };
 }
 
-async function verifyLinkPassword(link, password) {
-    if (link.has_password) {
-        if (!password) {
-            throw new ResponseError(401, 'Password is required');
-        }
-
-        const isValid = await bcrypt.compare(password, link.password);
-        if (!isValid) {
-            throw new ResponseError(401, 'Incorrect password');
-        }
-    }
-    return true;
-}
-
 async function validateLinkAccess(link) {
     if (link.is_archived) {
         throw new ResponseError(410, 'Link has archived');
@@ -280,8 +264,6 @@ async function archiveLink(req) {
 
         await cacheService.invalidateLinkCache(shortCode);
         await cacheService.invalidateQRCache(shortCode);
-        await cacheService.clearPendingStats(shortCode);
-        await cacheService.removeFromPendingFlush(shortCode);
 
         return result;
     } catch (err) {
@@ -366,8 +348,6 @@ async function unarchiveLink(req) {
 
         await cacheService.invalidateLinkCache(shortCode);
         await cacheService.invalidateQRCache(shortCode);
-        await cacheService.clearPendingStats(shortCode);
-        await cacheService.removeFromPendingFlush(shortCode);
 
         return result;
     } catch (err) {
@@ -388,5 +368,4 @@ export default {
     getArchivedLinks,
     unarchiveLink,
     validateLinkAccess,
-    verifyLinkPassword
 }

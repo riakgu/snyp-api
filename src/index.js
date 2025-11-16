@@ -1,10 +1,10 @@
 import app from './app.js';
-import { startStatsFlushJob } from './jobs/statsFlush.job.js';
 import {logger} from "./utils/logging.js";
-import {gracefulShutdown} from "./utils/gracefulShutdown.js";
 import config from "./config/index.js";
+import {gracefulShutdown} from "./utils/gracefulShutdown.js";
+import {connectRabbitMQ} from "./config/rabbitmq.js";
 
-startStatsFlushJob();
+await connectRabbitMQ();
 
 app.listen(config.app.port, config.app.host, () => {
     logger.info(`Server running on ${config.app.host}:${config.app.port}`);

@@ -1,14 +1,14 @@
-import statsService from '../services/stats.service.js';
 import { prismaClient } from '../config/database.js';
-import { redis } from '../config/cache.js';
+import { redis } from '../config/redis.js';
 import { logger } from './logging.js';
+import {closeRabbitMQ} from "../config/rabbitmq.js";
 
 export async function gracefulShutdown(signal) {
     logger.info(`${signal} received. Shutting down gracefully...`);
 
     try {
-        logger.info('Flushing pending stats...');
-        await statsService.flushStatsToDatabase();
+        logger.info('Closing RabbitMQ connection...');
+        await closeRabbitMQ();
 
         logger.info('Closing Prisma connection...');
         await prismaClient.$disconnect();
