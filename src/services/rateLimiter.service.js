@@ -1,14 +1,14 @@
-import redisService from "./redis.service.js";
 import {getClientIp} from "../utils/requestInfo.js";
+import {redis} from "../config/redis.js";
 
 async function fixedWindow(key, limit, windowSeconds) {
-    const currentCount = await redisService.incr(key);
+    const currentCount = await redis.incr(key);
 
     if (currentCount === 1) {
-        await redisService.expire(key, windowSeconds);
+        await redis.expire(key, windowSeconds);
     }
 
-    const ttl = await redisService.getTTL(key);
+    const ttl = await redis.ttl(key);
 
     return {
         allowed: currentCount <= limit,
