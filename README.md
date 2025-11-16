@@ -6,7 +6,7 @@ Snyp API is a fast and secure URL shortening service designed for modern applica
 It includes features such as link shortening, QR code generation, password-protected links, expiration, archiving, visit tracking, and rate limiting.
 
 ### Built With
-[![Node.js][Node.js]][Node-url] [![Express][Express.js]][Express-url] [![Prisma][Prisma]][Prisma-url] [![PostgreSQL][PostgreSQL]][PostgreSQL-url] [![Redis][Redis]][Redis-url] [![JWT][JWT]][JWT-url]
+[![Node.js][Node.js]][Node-url] [![Express][Express.js]][Express-url] [![Prisma][Prisma]][Prisma-url] [![PostgreSQL][PostgreSQL]][PostgreSQL-url] [![Redis][Redis]][Redis-url] [![RabbitMQ][RabbitMQ]][RabbitMQ-url] [![JWT][JWT]][JWT-url]
 
 
 ## Documentation
@@ -24,6 +24,7 @@ You can also explore and test the API using the Postman collection below:
 * Node.js >= v24.11.0
 * PostgreSQL >= v18.0
 * Redis >= v7.0.15
+* RabbitMQ >= v4.2.0
 
 ### Installation
 
@@ -61,6 +62,9 @@ You can also explore and test the API using the Postman collection below:
    JWT_REFRESH_SECRET=your-super-secret-refresh-key
    JWT_ACCESS_EXPIRE="15m"
    JWT_REFRESH_EXPIRE="7d"
+   
+   # RabbitMQ
+   RABBITMQ_URL='amqp://localhost:5672'
    ```
 
 4. Set up database
@@ -76,8 +80,12 @@ You can also explore and test the API using the Postman collection below:
 
 6. Start the application
    ```sh
+   # Start API (Terminal 1)
    npm run dev
-   # The API will be available at `http://localhost:3000`
+   ```
+   ```sh
+   # Start Worker (Terminal 2)
+   npm run dev:worker
    ```
 
 
@@ -101,6 +109,8 @@ npm run test
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 
+[RabbitMQ]: https://img.shields.io/badge/-RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white
+[RabbitMQ-url]: https://www.rabbitmq.com/
 [Postman]: https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=Postman&logoColor=white
 [Postman-url]: https://documenter.getpostman.com/view/29055658/2sB3WvNJRm
 [Node.js]: https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white
