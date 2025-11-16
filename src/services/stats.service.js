@@ -61,7 +61,7 @@ async function getStats(req) {
         };
 
     } catch (err) {
-        throw new ResponseError(500, 'Failed to get stats');
+        throw err;
     }
 }
 
