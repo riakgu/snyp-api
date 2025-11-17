@@ -77,7 +77,7 @@ async function getLinkByShortCode(req) {
     }
 
     const link = await prismaClient.link.findUnique({
-        where: { short_code: shortCode },
+        where: { short_code: shortCode, deleted_at: null},
         select: {
             id: true,
             user_id: true,
@@ -166,11 +166,15 @@ async function deleteLink(req) {
     const { shortCode } = req.params;
 
     try {
-        const result = await prismaClient.link.delete({
+        const result = await prismaClient.link.update({
             where: {
                 short_code: shortCode,
                 user_id: userId,
             },
+            data: {
+                short_code: generateShortCode(10),
+                deleted_at: new Date(),
+            }
         });
 
         await cacheService.invalidateLinkCache(shortCode);
@@ -193,7 +197,7 @@ async function getLinks(req) {
     const skip = (page - 1) * limit;
 
     const links = await prismaClient.link.findMany({
-        where: { user_id: userId, archived_at: null},
+        where: { user_id: userId, archived_at: null, deleted_at: null },
         orderBy: { created_at: 'desc' },
         skip: skip,
         take: limit,
@@ -284,7 +288,8 @@ async function getArchivedLinks(req) {
     const links = await prismaClient.link.findMany({
         where: {
             user_id: userId,
-            archived_at: {not: null}
+            archived_at: {not: null},
+            deleted_at: null
         },
         orderBy: { created_at: 'desc' },
         skip: skip,
