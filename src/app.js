@@ -8,6 +8,7 @@ import {createRateLimiter} from "./middlewares/rateLimiter.middleware.js";
 import config from "./config/index.js";
 import helmet from "helmet";
 import cors from 'cors';
+import userRoute from "./routes/user.route.js";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/api/auth/login', createRateLimiter({
 }));
 
 app.use("/api/auth", authRoute);
+app.use("/api/users", userRoute);
 app.use("/api/links", linkRoute);
 app.use('/', redirectRoute);
 
