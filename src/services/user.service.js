@@ -59,7 +59,27 @@ async function updatePassword(req) {
     })
 }
 
+async function getProfile(req) {
+    const userId = req.auth.userId;
+
+    const user = await prismaClient.user.findUnique({
+        where: {id: userId},
+        select: {
+            id: true,
+            email: true,
+            name: true,
+        }
+    });
+
+    if (!user) {
+        throw new ResponseError(404, 'User not found');
+    }
+
+    return user;
+}
+
 export default {
     updateUser,
     updatePassword,
+    getProfile
 }

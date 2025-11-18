@@ -22,7 +22,19 @@ async function updatePassword(req, res, next) {
     }
 }
 
+async function getProfile(req, res, next) {
+    try {
+        const result = await userService.getProfile(req);
+        res.status(200).json({
+            data: result
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     updateUser,
     updatePassword,
+    getProfile,
 }

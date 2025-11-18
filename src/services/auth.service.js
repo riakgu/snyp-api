@@ -74,23 +74,9 @@ async function logout(req) {
     await tokenService.revokeUserTokens(userId);
 }
 
-async function get(req) {
-    const { userId } = req.auth;
-
-    return prismaClient.user.findUnique({
-        where: { id: userId },
-        select: {
-            id: true,
-            email: true,
-            name: true,
-        }
-    })
-}
-
 export default {
     register,
     login,
     refresh,
     logout,
-    get
 };
