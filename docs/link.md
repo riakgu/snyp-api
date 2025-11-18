@@ -13,7 +13,7 @@ This service provides URL shortening functionality with authentication, password
 
 
 ### 1. Create Link
-**POST** `/links`
+**POST** `/api/links`
 
 Creates a new shortened link. Works for both authenticated and unauthenticated users, with different capabilities.
 
@@ -63,7 +63,7 @@ Creates a new shortened link. Works for both authenticated and unauthenticated u
 ---
 
 ### 2. Get Link by Short Code
-**GET** `/links/:shortCode`
+**GET** `/api/links/:shortCode`
 
 Retrieves link information by its short code.
 
@@ -91,7 +91,7 @@ Retrieves link information by its short code.
 ---
 
 ### 3. Get User Links (200)
-**GET** `/links`
+**GET** `/api/links`
 
 Retrieves all active (non-archived) links for the authenticated user with pagination.
 
@@ -137,7 +137,7 @@ Retrieves all active (non-archived) links for the authenticated user with pagina
 ---
 
 ### 4. Update Link
-**PATCH** `/links/:shortCode`
+**PATCH** `/api/links/:shortCode`
 
 Updates an existing link. Only the owner can update their links.
 
@@ -179,7 +179,7 @@ All fields are optional. Only include fields you want to update.
 ---
 
 ### 5. Delete Link
-**DELETE** `/links/:shortCode`
+**DELETE** `/api/links/:shortCode`
 
 Permanently deletes a link. Only the owner can delete their links.
 
@@ -198,149 +198,5 @@ Permanently deletes a link. Only the owner can delete their links.
 
 ---
 
-### 6. Archive Link
-**POST** `/links/:shortCode/archive`
-
-Archives a link, making it inaccessible but preserving its data.
-
-#### Authentication
-- Required
-
-#### Response (200)
-```json
-{
-  "message": "Link has been archived successfully"
-}
-```
-
-#### Error Responses
-- `404` - Link not found or not owned by user
-- `500` - Internal server error
-
----
-
-### 7. Get Archived Links
-**GET** `/links/archived`
-
-Retrieves all archived links for the authenticated user with pagination.
-
-#### Authentication
-- Required
-
-#### Query Parameters
-- `page` (optional, default: 1): Page number
-- `limit` (optional, default: 10): Items per page
-
-#### Response (200)
-```json
-{
-  "data": [
-    {
-      "id": "nanoid",
-      "user_id": "nanoid",
-      "title": "Archived Link",
-      "long_url": "https://example.com",
-      "short_code": "abc123",
-      "has_password": false,
-      "is_archived": true,
-      "expired_at": null
-    }
-  ],
-  "paging": {
-    "page": 1,
-    "limit": 10,
-    "totalItem": 5,
-    "totalPage": 1
-  }
-}
-```
-
-#### Empty State Response
-```json
-{
-  "message": "You don't have any archived links",
-  "data": []
-}
-```
-
----
-
-### 8. Unarchive Link
-**PATCH** `/links/:shortCode/archive`
-
-Restores an archived link to active status.
-
-#### Authentication
-- Required
-
-#### Response (200)
-```json
-{
-  "message": "Link has been unarchived successfully"
-}
-```
-
-#### Error Responses
-- `404` - Link not found or not owned by user
-- `500` - Internal server error
-
----
-
-### 9. Get QR Code
-**GET** `/links/:shortCode/qr`
-
-Generates and returns a QR code image for the shortened link.
-
-#### Authentication
-- None
-
-#### Response
-- Returns QR code image
 
 
-#### Error Responses
-- `404` - Link not found
-- `500` - Internal server error (QR generation failed)
-
----
-
-### 10. Download QR Code
-**GET** `/links/:shortCode/qr/download`
-
-Downloads the QR code as a file.
-
-#### Authentication
-- None
-
-#### Response
-- PNG file download
-
----
-
-### 11. Get Link Statistics
-**GET** `/links/:shortCode/stats`
-
-Retrieves comprehensive usage statistics for a link.
-
-#### Authentication
-- None
-
-#### Response
-```json
-{
-  "total_visits": 1250,
-  "unique_visits": 843,
-  "qr_visits": 407
-}
-```
-
-#### Response Fields
-- `total_visits`: Total number of clicks/visits (all sources)
-- `unique_visits`: Number of unique visitors (based on IP + User Agent hash)
-- `qr_visits`: Number of visits from QR code scans
-
-
-#### Error Responses
-- `404` - Link not found
-
----

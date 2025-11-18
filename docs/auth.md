@@ -13,7 +13,7 @@ The service uses JWT-based authentication with access and refresh tokens. Access
 
 
 ### 1. Register
-**POST** `/auth/register`
+**POST** `/api/auth/register`
 
 Creates a new user account.
 
@@ -48,7 +48,7 @@ Creates a new user account.
 ---
 
 ### 2. Login
-**POST** `/auth/login`
+**POST** `/api/auth/login`
 
 Authenticates user and returns access + refresh tokens.
 
@@ -85,7 +85,7 @@ Authenticates user and returns access + refresh tokens.
 ---
 
 ### 3. Refresh Token
-**POST** `/auth/refresh`
+**POST** `/api/auth/refresh`
 
 Obtains a new access token using a valid refresh token.
 
@@ -111,7 +111,7 @@ Obtains a new access token using a valid refresh token.
 ---
 
 ### 4. Logout
-**POST** `/auth/logout`
+**POST** `/api/auth/logout`
 
 Invalidates current session and revokes all user tokens.
 
@@ -141,33 +141,5 @@ None required (user info extracted from token)
 #### Error Responses
 - `401` - Invalid or missing access token
 - `401` - Token already blacklisted
-
----
-
-### 5. Get Current User
-**GET** `/auth/me`
-
-Retrieves current authenticated user's profile.
-
-#### Authentication
-- **Required**: Yes (Bearer token)
-
-#### Request Headers
-```
-Authorization: Bearer <access_token>
-```
-
-#### Response (200)
-```json
-{
-  "id": "nanoid",
-  "email": "john@example.com",
-  "name": "John Doe"
-}
-```
-
-#### Error Responses
-- `401` - Invalid or missing access token
-- `404` - User not found (deleted account)
 
 ---
