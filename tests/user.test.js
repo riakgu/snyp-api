@@ -53,3 +53,63 @@ describe('POST /api/users/me', function () {
 
     });
 })
+
+describe('POST /api/users/me/password', function () {
+
+    beforeEach(async () => {
+        await createTestUser();
+    });
+
+    afterEach(async () => {
+        await removeTestUser();
+    });
+
+    it('should can update password', async () => {
+        const login = await supertest(app)
+            .post('/api/auth/login')
+            .send({
+                email: "test@gmail.com",
+                password: "supersecret"
+            });
+
+        const result = await supertest(app)
+            .post('/api/users/me/password')
+            .send({
+                old_password: 'supersecret',
+                new_password: 'newpassword',
+            })
+            .set('Authorization', `Bearer ${login.body.data.accessToken}`);
+
+        const loginAgain = await supertest(app)
+            .post('/api/auth/login')
+            .send({
+                email: "test@gmail.com",
+                password: "newpassword"
+            });
+
+        expect(result.status).toBe(200);
+        expect(result.body.message).toBe('Password updated successfully');
+        expect(loginAgain.status).toBe(200);
+    });
+
+    it('should reject if old password dont match', async () => {
+        const login = await supertest(app)
+            .post('/api/auth/login')
+            .send({
+                email: "test@gmail.com",
+                password: "supersecret"
+            });
+
+        const result = await supertest(app)
+            .post('/api/users/me/password')
+            .send({
+                old_password: 'randomrandom',
+                new_password: 'newpassword',
+            })
+            .set('Authorization', `Bearer ${login.body.data.accessToken}`);
+
+        expect(result.status).toBe(400);
+        expect(result.body.errors).toBeDefined();
+
+    });
+})

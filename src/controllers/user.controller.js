@@ -11,6 +11,18 @@ async function updateUser(req, res, next) {
     }
 }
 
+async function updatePassword(req, res, next) {
+    try {
+        await userService.updatePassword(req);
+        res.status(200).json({
+            message: "Password updated successfully"
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
-    updateUser
+    updateUser,
+    updatePassword,
 }
