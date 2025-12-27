@@ -228,7 +228,7 @@ async function getLinks(req) {
         }
     });
 
-    const total = await prismaClient.link.count({ where: { user_id: userId, archived_at: null} });
+    const total = await prismaClient.link.count({ where: { user_id: userId, archived_at: null, deleted_at: null} });
 
     if (total === 0) {
         return {
