@@ -351,7 +351,7 @@ async function getArchivedLinks(req) {
     };
 }
 
-async function unarchiveLink(req) {
+async function restoreLink(req) {
     const { userId } = req.auth;
     const { shortCode } = req.params;
 
@@ -386,6 +386,6 @@ export default {
     getLinks,
     archiveLink,
     getArchivedLinks,
-    unarchiveLink,
+    restoreLink,
     validateLinkAccess,
 }

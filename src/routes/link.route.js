@@ -8,7 +8,7 @@ const router = Router();
 
 router.get('/archived', requireAuth, linkController.getArchivedLinks);
 router.post('/:shortCode/archive', requireAuth, linkController.archiveLink);
-router.patch('/:shortCode/archive', requireAuth, linkController.unarchiveLink);
+router.post('/:shortCode/restore', requireAuth, linkController.restoreLink);
 
 router.get('/', requireAuth, linkController.getLinks);
 router.post("/", optionalAuth, linkController.createLink);

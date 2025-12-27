@@ -83,11 +83,11 @@ async function getArchivedLinks(req, res, next) {
     }
 }
 
-async function unarchiveLink(req, res, next) {
+async function restoreLink(req, res, next) {
     try {
-        await linkService.unarchiveLink(req);
+        await linkService.restoreLink(req);
         res.status(200).json({
-            message: "Link has been unarchived successfully"
+            message: "Link has been restored successfully"
         });
     } catch (err) {
         next(err);
@@ -102,5 +102,5 @@ export default {
     getLinks,
     archiveLink,
     getArchivedLinks,
-    unarchiveLink
+    restoreLink
 }
