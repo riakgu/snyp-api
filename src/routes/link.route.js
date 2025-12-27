@@ -1,6 +1,6 @@
 import { Router } from "express";
 import linkController from "../controllers/link.controller.js";
-import {optionalAuth, requireAuth} from "../middlewares/auth.middleware.js";
+import { optionalAuth, requireAuth } from "../middlewares/auth.middleware.js";
 import qrcodeController from "../controllers/qrcode.controller.js";
 import statsController from "../controllers/stats.controller.js";
 
@@ -10,6 +10,7 @@ router.get('/archived', requireAuth, linkController.getArchivedLinks);
 router.post('/:shortCode/archive', requireAuth, linkController.archiveLink);
 router.post('/:shortCode/restore', requireAuth, linkController.restoreLink);
 
+router.get('/stats', requireAuth, statsController.getTotalStats);
 router.get('/', requireAuth, linkController.getLinks);
 router.post("/", optionalAuth, linkController.createLink);
 router.get('/:shortCode', linkController.getLinkByShortCode);

@@ -1,9 +1,9 @@
 import crypto from 'crypto';
 import { prismaClient } from '../config/database.js';
 import { ResponseError } from '../errors/response.error.js';
-import {logger} from "../utils/logging.js";
+import { logger } from "../utils/logging.js";
 import queueService from './queue.service.js';
-import {getClientIp, getUserAgent} from "../utils/requestInfo.js";
+import { getClientIp, getUserAgent } from "../utils/requestInfo.js";
 import cacheService from "./cache.service.js";
 
 
@@ -15,7 +15,7 @@ function generateVisitorId(ipAddress, userAgent) {
         .substring(0, 32);
 }
 
-async function trackVisit(req){
+async function trackVisit(req) {
     const { shortCode } = req.params;
     const isFromQR = req.query.qr === '1';
 
@@ -39,6 +39,41 @@ async function trackVisit(req){
     } catch (err) {
         logger.error('Failed to track visit:', err);
     }
+}
+
+async function getTotalStats(req) {
+    const { userId } = req.auth;
+
+    const result = await prismaClient.linkStats.aggregate({
+        where: {
+            link: {
+                user_id: userId,
+                deleted_at: null,
+            }
+        },
+        _sum: {
+            total_visits: true,
+            unique_visits: true,
+            qr_visits: true,
+        }
+    });
+
+    const totalLinks = await prismaClient.link.count({
+        where: { user_id: userId, deleted_at: null, archived_at: null }
+    });
+
+    const archivedLinks = await prismaClient.link.count({
+        where: { user_id: userId, deleted_at: null, archived_at: { not: null } }
+    });
+
+    return {
+        total_links: totalLinks + archivedLinks,
+        active_links: totalLinks,
+        archived_links: archivedLinks,
+        total_visits: result._sum.total_visits ?? 0,
+        unique_visits: result._sum.unique_visits ?? 0,
+        qr_visits: result._sum.qr_visits ?? 0,
+    };
 }
 
 async function getStats(req) {
@@ -93,5 +128,6 @@ async function processVisitEvent(data) {
 export default {
     trackVisit,
     getStats,
+    getTotalStats,
     processVisitEvent,
 };
