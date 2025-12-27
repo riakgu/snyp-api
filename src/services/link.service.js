@@ -211,10 +211,22 @@ async function getLinks(req) {
     const limit = parseInt(req.query.limit ?? 10);
     const skip = (page - 1) * limit;
 
+    const status = req.query.status ?? 'active';
+
+    const where = {
+        user_id: userId,
+        deleted_at: null,
+        archived_at:
+            status === 'archived'
+                ? { not: null }
+                : null,
+    };
+
+
     const links = await prismaClient.link.findMany({
-        where: { user_id: userId, archived_at: null, deleted_at: null },
+        where,
         orderBy: { created_at: 'desc' },
-        skip: skip,
+        skip,
         take: limit,
         select: {
             id: true,
@@ -228,7 +240,7 @@ async function getLinks(req) {
         }
     });
 
-    const total = await prismaClient.link.count({ where: { user_id: userId, archived_at: null, deleted_at: null} });
+    const total = await prismaClient.link.count({ where });
 
     if (total === 0) {
         return {
