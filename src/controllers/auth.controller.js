@@ -4,7 +4,7 @@ import {logger} from "../utils/logging.js";
 async function register(req, res, next) {
     try {
         const result = await authService.register(req);
-        res.status(200).json({
+        res.status(201).json({
             data: result
         });
     } catch (err) {

@@ -11,7 +11,7 @@ async function register(req) {
     const passwordHashed = await bcrypt.hash(password, 10);
 
     try {
-        return await prismaClient.user.create({
+        const user = await prismaClient.user.create({
             data: {
                 name,
                 email,
@@ -23,15 +23,20 @@ async function register(req) {
                 name: true,
             },
         });
+
+        const tokens = await tokenService.generateTokenPair(user.id);
+
+        return {
+            user,
+            ...tokens,
+        };
     } catch (err) {
         if (err.code === 'P2002') {
             throw new ResponseError(400, "Email already exists");
         }
         throw err;
     }
-
 }
-
 async function login(req) {
     const { email, password } = validate(loginValidation, req.body);
 
