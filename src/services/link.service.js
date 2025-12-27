@@ -109,7 +109,22 @@ async function updateLink(req) {
     const data = validate(updateLinkValidation, req.body);
 
     const customCode = data.short_code ?? req.params.shortCode;
-    const passwordHash = data.password ? await bcrypt.hash(data.password, 10) : undefined;
+    const passwordHash =
+        data.password === null
+            ? null
+            : data.password
+                ? await bcrypt.hash(data.password, 10)
+                : undefined;
+
+    const expiredAt =
+        data.expired_at === null
+            ? null
+            : data.expired_at ?? undefined;
+
+    const title =
+        data.title === null
+            ? null
+            : data.title ?? undefined;
 
     try {
         const link = await prismaClient.link.update({
@@ -118,11 +133,11 @@ async function updateLink(req) {
                 user_id: userId,
             },
             data: {
-                title: data.title ?? undefined,
+                title,
                 long_url: data.long_url ?? undefined,
                 short_code: customCode,
                 password: passwordHash,
-                expired_at: data.expired_at ?? undefined,
+                expired_at: expiredAt,
             },
             select: {
                 id: true,
