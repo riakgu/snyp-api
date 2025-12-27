@@ -1,10 +1,10 @@
-import {validate} from "../utils/validators.js";
-import {prismaClient} from "../config/database.js";
-import {createLinkAuthValidation, createLinkValidation, updateLinkValidation} from "../validations/link.validation.js";
-import {ResponseError} from "../errors/response.error.js";
+import { validate } from "../utils/validators.js";
+import { prismaClient } from "../config/database.js";
+import { createLinkAuthValidation, createLinkValidation, updateLinkValidation } from "../validations/link.validation.js";
+import { ResponseError } from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
 import cacheService from "./cache.service.js";
-import {generateShortCode} from "../utils/shortCode.js";
+import { generateShortCode } from "../utils/shortCode.js";
 
 async function createLink(req) {
     const isAuth = !!req.auth;
@@ -37,7 +37,9 @@ async function createLink(req) {
                     short_code: true,
                     password: true,
                     expired_at: true,
-                    archived_at: true
+                    archived_at: true,
+                    created_at: true,
+                    updated_at: true,
                 }
             });
 
@@ -77,7 +79,7 @@ async function getLinkByShortCode(req) {
     }
 
     const link = await prismaClient.link.findUnique({
-        where: { short_code: shortCode, deleted_at: null},
+        where: { short_code: shortCode, deleted_at: null },
         select: {
             id: true,
             user_id: true,
@@ -87,6 +89,8 @@ async function getLinkByShortCode(req) {
             password: true,
             expired_at: true,
             archived_at: true,
+            created_at: true,
+            updated_at: true,
         }
     });
 
@@ -148,6 +152,8 @@ async function updateLink(req) {
                 password: true,
                 expired_at: true,
                 archived_at: true,
+                created_at: true,
+                updated_at: true,
             }
         });
 
@@ -237,6 +243,8 @@ async function getLinks(req) {
             password: true,
             expired_at: true,
             archived_at: true,
+            created_at: true,
+            updated_at: true,
         }
     });
 
@@ -315,7 +323,7 @@ async function getArchivedLinks(req) {
     const links = await prismaClient.link.findMany({
         where: {
             user_id: userId,
-            archived_at: {not: null},
+            archived_at: { not: null },
             deleted_at: null
         },
         orderBy: { created_at: 'desc' },
@@ -330,14 +338,17 @@ async function getArchivedLinks(req) {
             password: true,
             expired_at: true,
             archived_at: true,
+            created_at: true,
+            updated_at: true,
         }
     });
 
     const total = await prismaClient.link.count({
         where: {
             user_id: userId,
-            archived_at: {not: null}
-        }});
+            archived_at: { not: null }
+        }
+    });
 
     if (total === 0) {
         return {
