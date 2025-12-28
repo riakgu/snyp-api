@@ -6,5 +6,6 @@ const router = Router();
 
 router.get('/overview', requireAuth, analyticsController.getOverview);
 router.get('/clicks', requireAuth, analyticsController.getClicks);
+router.get('/top-links', requireAuth, analyticsController.getTopLinks);
 
 export default router;

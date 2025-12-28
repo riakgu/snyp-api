@@ -18,7 +18,18 @@ async function getClicks(req, res, next) {
     }
 }
 
+async function getTopLinks(req, res, next) {
+    try {
+        const result = await analyticsService.getTopLinks(req);
+        res.status(200).json({ data: result });
+    } catch (err) {
+        next(err);
+    }
+}
+
+
 export default {
     getOverview,
     getClicks,
+    getTopLinks,
 };

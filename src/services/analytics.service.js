@@ -103,7 +103,42 @@ async function getClicks(req) {
     return Object.entries(grouped).map(([date, count]) => ({ date, count }));
 }
 
+async function getTopLinks(req) {
+    const { userId } = req.auth;
+    const period = req.query.period || '7d';
+    const limit = parseInt(req.query.limit) || 5;
+    const { start, end } = getPeriodDates(period);
+
+    const clicks = await prismaClient.linkClick.groupBy({
+        by: ['link_id'],
+        where: {
+            link: { user_id: userId, deleted_at: null },
+            ...(start && { created_at: { gte: start, lte: end } })
+        },
+        _count: true,
+        orderBy: { _count: { link_id: 'desc' } },
+        take: limit,
+    });
+
+    // Get link details
+    const linkIds = clicks.map(c => c.link_id);
+    const links = await prismaClient.link.findMany({
+        where: { id: { in: linkIds } },
+        select: { id: true, short_code: true, long_url: true }
+    });
+
+    const linkMap = Object.fromEntries(links.map(l => [l.id, l]));
+
+    return clicks.map(c => ({
+        short_code: linkMap[c.link_id]?.short_code,
+        long_url: linkMap[c.link_id]?.long_url,
+        count: c._count,
+    }));
+}
+
+
 export default {
     getOverview,
     getClicks,
+    getTopLinks,
 };
