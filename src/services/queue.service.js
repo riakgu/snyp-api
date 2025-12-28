@@ -12,6 +12,8 @@ async function publishVisitEvent(data) {
             browser: data.browser,
             os: data.os,
             device: data.device,
+            country: data.country,
+            city: data.city,
             timestamp: new Date().toISOString(),
         };
 

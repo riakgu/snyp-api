@@ -5,7 +5,7 @@ import { logger } from "../utils/logging.js";
 import queueService from './queue.service.js';
 import { getClientIp, getUserAgent, getReferrer, parseUserAgent } from "../utils/requestInfo.js";
 import cacheService from "./cache.service.js";
-
+import { getGeoLocation } from "../utils/geoLocation.js";
 
 function generateVisitorId(ipAddress, userAgent) {
     return crypto
@@ -23,6 +23,7 @@ async function trackVisit(req) {
     const userAgent = getUserAgent(req);
     const referrer = getReferrer(req);
     const { browser, os, device } = parseUserAgent(req);
+    const { country, city } = await getGeoLocation(ipAddress);
 
     try {
         const visitorId = generateVisitorId(ipAddress, userAgent);
@@ -40,6 +41,8 @@ async function trackVisit(req) {
             browser,
             os,
             device,
+            country,
+            city,
         });
 
     } catch (err) {
@@ -107,7 +110,7 @@ async function getStats(req) {
 }
 
 async function processVisitEvent(data) {
-    const { shortCode, isFromQR, isUnique, referrer, browser, os, device } = data;
+    const { shortCode, isFromQR, isUnique, referrer, browser, os, device, country, city } = data;
 
     try {
         const link = await prismaClient.link.findUnique({
@@ -120,7 +123,6 @@ async function processVisitEvent(data) {
             return;
         }
 
-        // Create detailed click record
         await prismaClient.linkClick.create({
             data: {
                 link_id: link.id,
@@ -128,12 +130,13 @@ async function processVisitEvent(data) {
                 browser,
                 os,
                 device,
+                country,
+                city,
                 is_qr: isFromQR,
                 is_unique: isUnique,
             }
         });
 
-        // Update aggregate stats
         await prismaClient.linkStats.update({
             where: { link_id: link.id },
             data: {
