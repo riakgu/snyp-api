@@ -8,5 +8,6 @@ router.get('/overview', requireAuth, analyticsController.getOverview);
 router.get('/clicks', requireAuth, analyticsController.getClicks);
 router.get('/top-links', requireAuth, analyticsController.getTopLinks);
 router.get('/referrers', requireAuth, analyticsController.getReferrers);
+router.get('/devices', requireAuth, analyticsController.getDevices);
 
 export default router;
