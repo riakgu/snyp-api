@@ -4,14 +4,17 @@ import config from "../config/index.js";
 
 async function redirectLink(req) {
 
+    const { shortCode } = req.params;
+
     let link;
+
     try {
         link = await linkService.getLinkByShortCode(req);
     } catch (err) {
         if (err.status === 404) {
             return {
                 type: 'not_found',
-                url: `${config.frontendUrl}/not-found`
+                url: `${config.frontendUrl}/n/${shortCode}`
             };
         }
         throw err;
@@ -27,7 +30,7 @@ async function redirectLink(req) {
     if (link.is_archived) {
         return {
             type: 'archived',
-            url: `${config.frontendUrl}/e/${link.short_code}`
+            url: `${config.frontendUrl}/n/${link.short_code}`
         };
     }
 
