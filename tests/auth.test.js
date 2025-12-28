@@ -1,7 +1,7 @@
 import supertest from "supertest";
 import app from "../src/app.js";
-import {createTestUser, removeTestUser} from "./utils.js";
-import {logger} from "../src/utils/logging.js";
+import { createTestUser, removeTestUser } from "./utils.js";
+import { logger } from "../src/utils/logging.js";
 
 describe('POST /api/auth/register', function () {
 
@@ -18,10 +18,10 @@ describe('POST /api/auth/register', function () {
                 name: 'test'
             });
 
-        expect(result.status).toBe(200);
-        expect(result.body.data.email).toBe("test@gmail.com");
-        expect(result.body.data.name).toBe("test");
-        expect(result.body.data.password).toBeUndefined();
+        expect(result.status).toBe(201);
+        expect(result.body.data.user.email).toBe("test@gmail.com");
+        expect(result.body.data.user.name).toBe("test");
+        expect(result.body.data.user.password).toBeUndefined();
     });
 
     it('should reject if request is invalid', async () => {
@@ -46,10 +46,10 @@ describe('POST /api/auth/register', function () {
                 name: 'test'
             });
 
-        expect(result.status).toBe(200);
-        expect(result.body.data.email).toBe("test@gmail.com");
-        expect(result.body.data.name).toBe("test");
-        expect(result.body.data.password).toBeUndefined();
+        expect(result.status).toBe(201);
+        expect(result.body.data.user.email).toBe("test@gmail.com");
+        expect(result.body.data.user.name).toBe("test");
+        expect(result.body.data.user.password).toBeUndefined();
 
         result = await supertest(app)
             .post('/api/auth/register')

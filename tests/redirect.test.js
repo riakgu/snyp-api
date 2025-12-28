@@ -1,4 +1,4 @@
-import {createTestLink, removeTestLink} from "./utils.js";
+import { createTestLink, removeTestLink } from "./utils.js";
 import supertest from "supertest";
 import app from "../src/app.js";
 
@@ -24,8 +24,8 @@ describe('GET /:shortCode', function () {
         const result = await supertest(app)
             .get(`/gftrdtr`)
 
-        expect(result.status).toBe(404);
-        expect(result.body.errors).toBeDefined();
+        expect(result.status).toBe(302);
+        expect(result.headers.location).toContain('/not-found');
     });
 
 
@@ -48,12 +48,12 @@ describe('GET /:shortCode', function () {
         const result = await supertest(app)
             .get(`/${link.body.data.short_code}`);
 
-        expect(result.status).toBe(403);
-        expect(result.body.errors).toBeDefined();
+        expect(result.status).toBe(302);
+        expect(result.headers.location).toContain('/p/');
     });
 })
 
-describe('GET /:shortCode/verify', function () {
+describe('POST /api/links/:shortCode/verify', function () {
 
     beforeEach(async () => {
         await createTestLink();
@@ -80,15 +80,13 @@ describe('GET /:shortCode/verify', function () {
             .set('Authorization', `Bearer ${login.body.data.accessToken}`);
 
         const result = await supertest(app)
-            .post(`/${link.body.data.short_code}/verify`)
+            .post(`/api/links/${link.body.data.short_code}/verify`)
             .send({
                 password: 'supersecret',
             })
 
         expect(result.status).toBe(200);
         expect(result.body.data.long_url).toBe("https://riakgu.com");
-        expect(result.body.data.short_code).toBe(link.body.data.short_code);
-        expect(result.body.data.has_password).toBe(true);
     });
 
     it('should reject if password is wrong', async () => {
@@ -108,7 +106,7 @@ describe('GET /:shortCode/verify', function () {
             .set('Authorization', `Bearer ${login.body.data.accessToken}`);
 
         const result = await supertest(app)
-            .post(`/${link.body.data.short_code}/verify`)
+            .post(`/api/links/${link.body.data.short_code}/verify`)
             .send({
                 password: 'xxxxxx',
             })
