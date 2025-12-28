@@ -180,10 +180,44 @@ async function getDevices(req) {
     }));
 }
 
+async function getBrowsers(req) {
+    const { userId } = req.auth;
+    const period = req.query.period || '7d';
+    const limit = parseInt(req.query.limit) || 5;
+    const { start, end } = getPeriodDates(period);
+
+    const browsers = await prismaClient.linkClick.groupBy({
+        by: ['browser'],
+        where: {
+            link: { user_id: userId, deleted_at: null },
+            ...(start && { created_at: { gte: start, lte: end } })
+        },
+        _count: true,
+        orderBy: { _count: { browser: 'desc' } },
+    });
+
+    // Top N + "Other"
+    const top = browsers.slice(0, limit);
+    const other = browsers.slice(limit).reduce((sum, b) => sum + b._count, 0);
+
+    const result = top.map(b => ({
+        name: b.browser || 'Unknown',
+        count: b._count,
+    }));
+
+    if (other > 0) {
+        result.push({ name: 'Other', count: other });
+    }
+
+    return result;
+}
+
+
 export default {
     getOverview,
     getClicks,
     getTopLinks,
     getReferrers,
     getDevices,
+    getBrowsers,
 };

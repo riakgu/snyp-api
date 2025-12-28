@@ -45,10 +45,20 @@ async function getDevices(req, res, next) {
     }
 }
 
+async function getBrowsers(req, res, next) {
+    try {
+        const result = await analyticsService.getBrowsers(req);
+        res.status(200).json({ data: result });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     getOverview,
     getClicks,
     getTopLinks,
     getReferrers,
     getDevices,
+    getBrowsers,
 };
