@@ -39,6 +39,7 @@ model Link {
   deleted_at  DateTime?
   user        User?      @relation(fields: [user_id], references: [id], onDelete: SetNull)
   stats       LinkStats?
+  clicks      LinkClick[]
 
   @@map("links")
 }
@@ -53,4 +54,24 @@ model LinkStats {
   link          Link     @relation(fields: [link_id], references: [id], onDelete: Cascade)
   
   @@map("link_stats")
+}
+
+model LinkClick {
+  id          String   @id @default(nanoid())
+  link_id     String
+  referrer    String?
+  device      String?
+  browser     String?
+  os          String?
+  country     String?
+  city        String?
+  is_qr       Boolean  @default(false)
+  is_unique   Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  link        Link     @relation(fields: [link_id], references: [id], onDelete: Cascade)
+
+  @@index([link_id])
+  @@index([created_at])
+  @@map("link_clicks")
 }
