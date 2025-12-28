@@ -11,5 +11,6 @@ router.get('/referrers', requireAuth, analyticsController.getReferrers);
 router.get('/devices', requireAuth, analyticsController.getDevices);
 router.get('/browsers', requireAuth, analyticsController.getBrowsers);
 router.get('/countries', requireAuth, analyticsController.getCountries);
+router.get('/cities', requireAuth, analyticsController.getCities);
 
 export default router;

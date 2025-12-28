@@ -63,6 +63,15 @@ async function getCountries(req, res, next) {
     }
 }
 
+async function getCities(req, res, next) {
+    try {
+        const result = await analyticsService.getCities(req);
+        res.status(200).json({ data: result });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     getOverview,
     getClicks,
@@ -71,4 +80,5 @@ export default {
     getDevices,
     getBrowsers,
     getCountries,
+    getCities,
 };

@@ -233,6 +233,27 @@ async function getCountries(req) {
     }));
 }
 
+async function getCities(req) {
+    const { userId } = req.auth;
+    const period = req.query.period || '7d';
+    const limit = parseInt(req.query.limit) || 10;
+    const { start, end } = getPeriodDates(period);
+    const cities = await prismaClient.linkClick.groupBy({
+        by: ['city'],
+        where: {
+            link: { user_id: userId, deleted_at: null },
+            ...(start && { created_at: { gte: start, lte: end } })
+        },
+        _count: true,
+        orderBy: { _count: { city: 'desc' } },
+        take: limit,
+    });
+    return cities.map(c => ({
+        name: c.city || 'Unknown',
+        count: c._count,
+    }));
+}
+
 
 export default {
     getOverview,
@@ -242,4 +263,5 @@ export default {
     getDevices,
     getBrowsers,
     getCountries,
+    getCities,
 };
