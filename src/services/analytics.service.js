@@ -76,6 +76,34 @@ async function getOverview(req) {
     };
 }
 
+async function getClicks(req) {
+    const { userId } = req.auth;
+    const period = req.query.period || '7d';
+    const { start, end } = getPeriodDates(period);
+
+    const baseWhere = {
+        link: { user_id: userId, deleted_at: null },
+        ...(start && { created_at: { gte: start, lte: end } })
+    };
+
+    const clicks = await prismaClient.linkClick.groupBy({
+        by: ['created_at'],
+        where: baseWhere,
+        _count: true,
+        orderBy: { created_at: 'asc' },
+    });
+
+    // Group by date
+    const grouped = {};
+    clicks.forEach(row => {
+        const date = row.created_at.toISOString().split('T')[0];
+        grouped[date] = (grouped[date] || 0) + row._count;
+    });
+
+    return Object.entries(grouped).map(([date, count]) => ({ date, count }));
+}
+
 export default {
     getOverview,
+    getClicks,
 };
