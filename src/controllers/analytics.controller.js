@@ -54,6 +54,15 @@ async function getBrowsers(req, res, next) {
     }
 }
 
+async function getCountries(req, res, next) {
+    try {
+        const result = await analyticsService.getCountries(req);
+        res.status(200).json({ data: result });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     getOverview,
     getClicks,
@@ -61,4 +70,5 @@ export default {
     getReferrers,
     getDevices,
     getBrowsers,
+    getCountries,
 };

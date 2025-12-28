@@ -212,6 +212,27 @@ async function getBrowsers(req) {
     return result;
 }
 
+async function getCountries(req) {
+    const { userId } = req.auth;
+    const period = req.query.period || '7d';
+    const limit = parseInt(req.query.limit) || 10;
+    const { start, end } = getPeriodDates(period);
+    const countries = await prismaClient.linkClick.groupBy({
+        by: ['country'],
+        where: {
+            link: { user_id: userId, deleted_at: null },
+            ...(start && { created_at: { gte: start, lte: end } })
+        },
+        _count: true,
+        orderBy: { _count: { country: 'desc' } },
+        take: limit,
+    });
+    return countries.map(c => ({
+        name: c.country || 'Unknown',
+        count: c._count,
+    }));
+}
+
 
 export default {
     getOverview,
@@ -220,4 +241,5 @@ export default {
     getReferrers,
     getDevices,
     getBrowsers,
+    getCountries,
 };
