@@ -3,7 +3,7 @@ import { prismaClient } from '../config/database.js';
 import { ResponseError } from '../errors/response.error.js';
 import { logger } from "../utils/logging.js";
 import queueService from './queue.service.js';
-import { getClientIp, getUserAgent } from "../utils/requestInfo.js";
+import { getClientIp, getUserAgent, getReferrer, parseUserAgent } from "../utils/requestInfo.js";
 import cacheService from "./cache.service.js";
 
 
@@ -21,6 +21,8 @@ async function trackVisit(req) {
 
     const ipAddress = getClientIp(req);
     const userAgent = getUserAgent(req);
+    const referrer = getReferrer(req);
+    const { browser, os, device } = parseUserAgent(req);
 
     try {
         const visitorId = generateVisitorId(ipAddress, userAgent);
@@ -34,6 +36,10 @@ async function trackVisit(req) {
             shortCode,
             isFromQR,
             isUnique,
+            referrer,
+            browser,
+            os,
+            device,
         });
 
     } catch (err) {
@@ -101,19 +107,39 @@ async function getStats(req) {
 }
 
 async function processVisitEvent(data) {
-    const { shortCode, isFromQR, isUnique } = data;
+    const { shortCode, isFromQR, isUnique, referrer, browser, os, device } = data;
 
     try {
-        await prismaClient.link.update({
+        const link = await prismaClient.link.findUnique({
             where: { short_code: shortCode },
+            select: { id: true }
+        });
+
+        if (!link) {
+            logger.error(`Link not found for shortCode: ${shortCode}`);
+            return;
+        }
+
+        // Create detailed click record
+        await prismaClient.linkClick.create({
             data: {
-                stats: {
-                    update: {
-                        total_clicks: { increment: 1 },
-                        ...(isUnique ? { unique_clicks: { increment: 1 } } : {}),
-                        ...(isFromQR ? { qr_clicks: { increment: 1 } } : {}),
-                    },
-                },
+                link_id: link.id,
+                referrer,
+                browser,
+                os,
+                device,
+                is_qr: isFromQR,
+                is_unique: isUnique,
+            }
+        });
+
+        // Update aggregate stats
+        await prismaClient.linkStats.update({
+            where: { link_id: link.id },
+            data: {
+                total_clicks: { increment: 1 },
+                ...(isUnique ? { unique_clicks: { increment: 1 } } : {}),
+                ...(isFromQR ? { qr_clicks: { increment: 1 } } : {}),
             },
         });
 

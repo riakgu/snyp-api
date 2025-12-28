@@ -1,5 +1,5 @@
-import {getChannel, STATS_QUEUE} from '../config/rabbitmq.js';
-import {logger} from "../utils/logging.js";
+import { getChannel, STATS_QUEUE } from '../config/rabbitmq.js';
+import { logger } from "../utils/logging.js";
 
 async function publishVisitEvent(data) {
     try {
@@ -8,6 +8,10 @@ async function publishVisitEvent(data) {
             shortCode: data.shortCode,
             isFromQR: data.isFromQR,
             isUnique: data.isUnique,
+            referrer: data.referrer,
+            browser: data.browser,
+            os: data.os,
+            device: data.device,
             timestamp: new Date().toISOString(),
         };
 
