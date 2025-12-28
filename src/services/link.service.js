@@ -307,67 +307,6 @@ async function archiveLink(req) {
     }
 }
 
-async function getArchivedLinks(req) {
-    const { userId } = req.auth;
-
-    const page = parseInt(req.query.page ?? 1);
-    const limit = parseInt(req.query.limit ?? 10);
-    const skip = (page - 1) * limit;
-
-    const links = await prismaClient.link.findMany({
-        where: {
-            user_id: userId,
-            archived_at: { not: null },
-            deleted_at: null
-        },
-        orderBy: { created_at: 'desc' },
-        skip: skip,
-        take: limit,
-        select: {
-            id: true,
-            user_id: true,
-            title: true,
-            long_url: true,
-            short_code: true,
-            password: true,
-            expired_at: true,
-            archived_at: true,
-            created_at: true,
-            updated_at: true,
-        }
-    });
-
-    const total = await prismaClient.link.count({
-        where: {
-            user_id: userId,
-            archived_at: { not: null }
-        }
-    });
-
-    if (total === 0) {
-        return {
-            message: 'You don\'t have any archived links',
-            data: [],
-        };
-    }
-
-    return {
-        data: links.map(link => ({
-            ...link,
-            has_password: !!link.password,
-            is_archived: !!link.archived_at,
-            password: undefined,
-            archived_at: undefined,
-        })),
-        paging: {
-            page,
-            limit,
-            totalItem: total,
-            totalPage: Math.ceil(total / limit),
-        },
-    };
-}
-
 async function restoreLink(req) {
     const { userId } = req.auth;
     const { shortCode } = req.params;
@@ -422,7 +361,6 @@ export default {
     deleteLink,
     getLinks,
     archiveLink,
-    getArchivedLinks,
     restoreLink,
     verifyPasswordLink,
 }

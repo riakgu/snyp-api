@@ -70,19 +70,6 @@ async function archiveLink(req, res, next) {
     }
 }
 
-async function getArchivedLinks(req, res, next) {
-    try {
-        const result = await linkService.getArchivedLinks(req);
-        res.status(200).json({
-            message: result.message ?? undefined,
-            data: result.data,
-            paging: result.paging
-        });
-    } catch (err) {
-        next(err);
-    }
-}
-
 async function restoreLink(req, res, next) {
     try {
         await linkService.restoreLink(req);
@@ -110,7 +97,6 @@ export default {
     deleteLink,
     getLinks,
     archiveLink,
-    getArchivedLinks,
     restoreLink,
     verifyPasswordLink
 }
