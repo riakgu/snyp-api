@@ -52,9 +52,9 @@ async function getTotalStats(req) {
             }
         },
         _sum: {
-            total_visits: true,
-            unique_visits: true,
-            qr_visits: true,
+            total_clicks: true,
+            unique_clicks: true,
+            qr_clicks: true,
         }
     });
 
@@ -70,9 +70,9 @@ async function getTotalStats(req) {
         total_links: totalLinks + archivedLinks,
         active_links: totalLinks,
         archived_links: archivedLinks,
-        total_visits: result._sum.total_visits ?? 0,
-        unique_visits: result._sum.unique_visits ?? 0,
-        qr_visits: result._sum.qr_visits ?? 0,
+        total_clicks: result._sum.total_clicks ?? 0,
+        unique_clicks: result._sum.unique_clicks ?? 0,
+        qr_clicks: result._sum.qr_clicks ?? 0,
     };
 }
 
@@ -90,9 +90,9 @@ async function getStats(req) {
         }
 
         return {
-            total_visits: link.stats.total_visits,
-            unique_visits: link.stats.unique_visits,
-            qr_visits: link.stats.qr_visits,
+            total_clicks: link.stats.total_clicks,
+            unique_clicks: link.stats.unique_clicks,
+            qr_clicks: link.stats.qr_clicks,
         };
 
     } catch (err) {
@@ -109,9 +109,9 @@ async function processVisitEvent(data) {
             data: {
                 stats: {
                     update: {
-                        total_visits: { increment: 1 },
-                        ...(isUnique ? { unique_visits: { increment: 1 } } : {}),
-                        ...(isFromQR ? { qr_visits: { increment: 1 } } : {}),
+                        total_clicks: { increment: 1 },
+                        ...(isUnique ? { unique_clicks: { increment: 1 } } : {}),
+                        ...(isFromQR ? { qr_clicks: { increment: 1 } } : {}),
                     },
                 },
             },

@@ -1,9 +1,9 @@
 -- CreateTable
 CREATE TABLE "link_stats" (
     "link_id" TEXT NOT NULL,
-    "total_visits" INTEGER NOT NULL DEFAULT 0,
-    "unique_visits" INTEGER NOT NULL DEFAULT 0,
-    "qr_visits" INTEGER NOT NULL DEFAULT 0,
+    "total_clicks" INTEGER NOT NULL DEFAULT 0,
+    "unique_clicks" INTEGER NOT NULL DEFAULT 0,
+    "qr_clicks" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 

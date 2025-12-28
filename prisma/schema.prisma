@@ -45,12 +45,12 @@ model Link {
 
 model LinkStats {
   link_id       String   @id
-  total_visits  Int      @default(0)
-  unique_visits Int      @default(0)
-  qr_visits     Int      @default(0)
+  total_clicks  Int      @default(0)
+  unique_clicks Int      @default(0)
+  qr_clicks     Int      @default(0)
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
   link          Link     @relation(fields: [link_id], references: [id], onDelete: Cascade)
-
+  
   @@map("link_stats")
 }

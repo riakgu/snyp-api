@@ -1,4 +1,4 @@
-import {createTestLink, removeTestLink} from "./utils.js";
+import { createTestLink, removeTestLink } from "./utils.js";
 import supertest from "supertest";
 import app from "../src/app.js";
 
@@ -17,9 +17,9 @@ describe('GET /api/links/:shortCode/stats', function () {
             .get('/api/links/test/stats')
 
         expect(result.status).toBe(200);
-        expect(result.body.data.total_visits).toBeDefined();
-        expect(result.body.data.unique_visits).toBeDefined();
-        expect(result.body.data.qr_visits).toBeDefined();
+        expect(result.body.data.total_clicks).toBeDefined();
+        expect(result.body.data.unique_clicks).toBeDefined();
+        expect(result.body.data.qr_clicks).toBeDefined();
     });
 
     it('should reject if short code not found', async () => {
