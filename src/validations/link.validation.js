@@ -20,8 +20,13 @@ const updateLinkValidation = Joi.object({
     expired_at: Joi.date().greater('now').allow(null),
 });
 
+const verifyPasswordLinkValidation = Joi.object({
+    password: Joi.string().required(),
+});
+
 export {
     createLinkValidation,
     createLinkAuthValidation,
     updateLinkValidation,
+    verifyPasswordLinkValidation
 }

@@ -94,6 +94,15 @@ async function restoreLink(req, res, next) {
     }
 }
 
+async function verifyPasswordLink(req, res, next) {
+    try {
+        const result = await linkService.verifyPasswordLink(req);
+        res.status(200).json({ data: result });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     createLink,
     getLinkByShortCode,
@@ -102,5 +111,6 @@ export default {
     getLinks,
     archiveLink,
     getArchivedLinks,
-    restoreLink
+    restoreLink,
+    verifyPasswordLink
 }

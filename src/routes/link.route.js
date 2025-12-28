@@ -10,6 +10,8 @@ router.get('/archived', requireAuth, linkController.getArchivedLinks);
 router.post('/:shortCode/archive', requireAuth, linkController.archiveLink);
 router.post('/:shortCode/restore', requireAuth, linkController.restoreLink);
 
+router.post('/:shortCode/verify', linkController.verifyPasswordLink);
+
 router.get('/stats', requireAuth, statsController.getTotalStats);
 router.get('/', requireAuth, linkController.getLinks);
 router.post("/", optionalAuth, linkController.createLink);

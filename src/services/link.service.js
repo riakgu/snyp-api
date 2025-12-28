@@ -1,6 +1,11 @@
 import { validate } from "../utils/validators.js";
 import { prismaClient } from "../config/database.js";
-import { createLinkAuthValidation, createLinkValidation, updateLinkValidation } from "../validations/link.validation.js";
+import {
+    createLinkAuthValidation,
+    createLinkValidation,
+    updateLinkValidation,
+    verifyPasswordLinkValidation
+} from "../validations/link.validation.js";
 import { ResponseError } from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
 import cacheService from "./cache.service.js";
@@ -401,6 +406,26 @@ async function restoreLink(req) {
     }
 }
 
+async function verifyPasswordLink(req) {
+    const { password } = validate(verifyPasswordLinkValidation, req.body);
+    const link = await getLinkByShortCode(req);
+
+    await validateLinkAccess(link);
+
+    if (!link.has_password) {
+        throw new ResponseError(400, 'Link is not password protected');
+    }
+
+    const isValid = await bcrypt.compare(password, link.password);
+    if (!isValid) {
+        throw new ResponseError(401, 'Incorrect password');
+    }
+
+    return {
+        long_url: link.long_url
+    };
+}
+
 export default {
     createLink,
     getLinkByShortCode,
@@ -411,4 +436,5 @@ export default {
     getArchivedLinks,
     restoreLink,
     validateLinkAccess,
+    verifyPasswordLink,
 }

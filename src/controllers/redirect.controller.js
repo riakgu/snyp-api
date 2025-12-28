@@ -9,20 +9,6 @@ async function redirectLink(req, res, next) {
     }
 }
 
-async function verifyPasswordLink(req, res, next) {
-    try {
-        const result = await redirectService.verifyPasswordLink(req);
-        result.password = undefined;
-        result.archived_at = undefined;
-        res.status(200).json({
-            data: result
-        });
-    } catch (err) {
-        next(err);
-    }
-}
-
 export default {
     redirectLink,
-    verifyPasswordLink,
 }
