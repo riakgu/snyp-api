@@ -9,6 +9,7 @@ import {
 import { ResponseError } from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
 import cacheService from "./cache.service.js";
+import statsService from "./stats.service.js";
 import { generateShortCode } from "../utils/shortCode.js";
 
 async function createLink(req) {
@@ -279,18 +280,6 @@ async function getLinks(req) {
     };
 }
 
-async function validateLinkAccess(link) {
-    if (link.is_archived) {
-        throw new ResponseError(410, 'Link has archived');
-    }
-
-    if (link.expired_at && new Date(link.expired_at) < new Date()) {
-        throw new ResponseError(410, 'Link has expired');
-    }
-
-    return true;
-}
-
 async function archiveLink(req) {
     const { userId } = req.auth;
     const { shortCode } = req.params;
@@ -410,8 +399,6 @@ async function verifyPasswordLink(req) {
     const { password } = validate(verifyPasswordLinkValidation, req.body);
     const link = await getLinkByShortCode(req);
 
-    await validateLinkAccess(link);
-
     if (!link.has_password) {
         throw new ResponseError(400, 'Link is not password protected');
     }
@@ -420,6 +407,8 @@ async function verifyPasswordLink(req) {
     if (!isValid) {
         throw new ResponseError(401, 'Incorrect password');
     }
+
+    await statsService.trackVisit(req);
 
     return {
         long_url: link.long_url
@@ -435,6 +424,5 @@ export default {
     archiveLink,
     getArchivedLinks,
     restoreLink,
-    validateLinkAccess,
     verifyPasswordLink,
 }

@@ -1,20 +1,49 @@
 import linkService from "./link.service.js";
 import statsService from "./stats.service.js";
-import { ResponseError } from "../errors/response.error.js";
+import config from "../config/index.js";
 
 async function redirectLink(req) {
 
-    const link = await linkService.getLinkByShortCode(req);
+    let link;
+    try {
+        link = await linkService.getLinkByShortCode(req);
+    } catch (err) {
+        if (err.status === 404) {
+            return {
+                type: 'not_found',
+                url: `${config.frontendUrl}/not-found`
+            };
+        }
+        throw err;
+    }
 
-    await linkService.validateLinkAccess(link);
+    if (link.expired_at && new Date(link.expired_at) < new Date()) {
+        return {
+            type: 'expired',
+            url: `${config.frontendUrl}/expired`
+        };
+    }
+
+    if (link.is_archived) {
+        return {
+            type: 'archived',
+            url: `${config.frontendUrl}/expired`
+        };
+    }
 
     if (link.has_password) {
-        throw new ResponseError(403, 'Password is required');
+        return {
+            type: 'password',
+            url: `${config.frontendUrl}/p/${link.short_code}`
+        };
     }
 
     await statsService.trackVisit(req);
 
-    return link.long_url
+    return {
+        type: 'redirect',
+        url: link.long_url
+    };
 }
 
 export default {
