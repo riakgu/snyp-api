@@ -20,14 +20,14 @@ async function redirectLink(req) {
     if (link.expired_at && new Date(link.expired_at) < new Date()) {
         return {
             type: 'expired',
-            url: `${config.frontendUrl}/expired`
+            url: `${config.frontendUrl}/e/${link.short_code}`
         };
     }
 
     if (link.is_archived) {
         return {
             type: 'archived',
-            url: `${config.frontendUrl}/expired`
+            url: `${config.frontendUrl}/e/${link.short_code}`
         };
     }
 

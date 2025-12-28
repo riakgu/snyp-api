@@ -17,7 +17,7 @@ const updateLinkValidation = Joi.object({
     long_url: Joi.string().uri({ scheme: ['http', 'https'] }),
     short_code: Joi.string().min(3).max(20),
     password: Joi.string().max(100).allow(null),
-    expired_at: Joi.date().greater('now').allow(null),
+    expired_at: Joi.date().allow(null),
 });
 
 const verifyPasswordLinkValidation = Joi.object({
