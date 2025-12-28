@@ -27,9 +27,18 @@ async function getTopLinks(req, res, next) {
     }
 }
 
+async function getReferrers(req, res, next) {
+    try {
+        const result = await analyticsService.getReferrers(req);
+        res.status(200).json({ data: result });
+    } catch (err) {
+        next(err);
+    }
+}
 
 export default {
     getOverview,
     getClicks,
     getTopLinks,
+    getReferrers,
 };

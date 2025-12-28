@@ -136,9 +136,32 @@ async function getTopLinks(req) {
     }));
 }
 
+async function getReferrers(req) {
+    const { userId } = req.auth;
+    const period = req.query.period || '7d';
+    const limit = parseInt(req.query.limit) || 10;
+    const { start, end } = getPeriodDates(period);
+
+    const referrers = await prismaClient.linkClick.groupBy({
+        by: ['referrer'],
+        where: {
+            link: { user_id: userId, deleted_at: null },
+            ...(start && { created_at: { gte: start, lte: end } })
+        },
+        _count: true,
+        orderBy: { _count: { referrer: 'desc' } },
+        take: limit,
+    });
+
+    return referrers.map(r => ({
+        name: r.referrer || 'Direct',
+        count: r._count,
+    }));
+}
 
 export default {
     getOverview,
     getClicks,
     getTopLinks,
+    getReferrers,
 };
