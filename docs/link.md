@@ -11,7 +11,6 @@ This service provides URL shortening functionality with authentication, password
 
 ---
 
-
 ### 1. Create Link
 **POST** `/api/links`
 
@@ -24,41 +23,36 @@ Creates a new shortened link. Works for both authenticated and unauthenticated u
 ```json
 {
   "long_url": "https://example.com/very-long-url",
-  "short_code": "custom", // Optional: Custom short code (authenticated users only)
-  "title": "My Link", // Optional: Link title (authenticated users only)
-  "password": "secret123", // Optional: Password protection (authenticated users only)
-  "expired_at": "2024-12-31T23:59:59Z" // Optional: Expiration date (authenticated users only)
+  "short_code": "custom",
+  "title": "My Link",
+  "password": "secret123",
+  "expired_at": "2024-12-31T23:59:59Z"
 }
 ```
 
-#### Authenticated Users Features
-- Custom short codes
-- Link titles
-- Password protection
-- Expiration dates
-- Link ownership
+> **Note:** `short_code`, `title`, `password`, and `expired_at` are only available for authenticated users.
 
-#### Unauthenticated Users
-- Auto-generated 5-character short codes
-- Basic URL shortening only
-
-#### Response (201)
+#### Response (200)
 ```json
 {
-  "id": "nanoid",
-  "user_id": "nanoid", // null for unauthenticated
-  "title": "My Link",
-  "long_url": "https://example.com/very-long-url",
-  "short_code": "abc123",
-  "has_password": true,
-  "is_archived": false,
-  "expired_at": "2024-12-31T23:59:59Z"
+  "data": {
+    "id": "nanoid",
+    "user_id": "nanoid",
+    "title": "My Link",
+    "long_url": "https://example.com/very-long-url",
+    "short_code": "abc123",
+    "has_password": true,
+    "is_archived": false,
+    "expired_at": "2024-12-31T23:59:59Z",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  }
 }
 ```
 
 #### Error Responses
 - `400` - Short code already taken
-- `500` - Failed to generate unique short code after 100 attempts
+- `500` - Failed to generate unique short code
 
 ---
 
@@ -73,15 +67,18 @@ Retrieves link information by its short code.
 #### Response (200)
 ```json
 {
-  "id": "nanoid",
-  "user_id": "nanoid",
-  "title": "My Link",
-  "long_url": "https://example.com/very-long-url",
-  "short_code": "abc123",
-  "password": "hashed_password",
-  "has_password": true,
-  "is_archived": false,
-  "expired_at": "2024-12-31T23:59:59Z"
+  "data": {
+    "id": "nanoid",
+    "user_id": "nanoid",
+    "title": "My Link",
+    "long_url": "https://example.com/very-long-url",
+    "short_code": "abc123",
+    "has_password": true,
+    "is_archived": false,
+    "expired_at": "2024-12-31T23:59:59Z",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  }
 }
 ```
 
@@ -90,19 +87,22 @@ Retrieves link information by its short code.
 
 ---
 
-### 3. Get User Links (200)
+### 3. Get User Links
 **GET** `/api/links`
 
-Retrieves all active (non-archived) links for the authenticated user with pagination.
+Retrieves links for the authenticated user with pagination and status filter.
 
 #### Authentication
 - Required
 
 #### Query Parameters
-- `page` (optional, default: 1): Page number
-- `limit` (optional, default: 10): Items per page
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `page` | 1 | Page number |
+| `limit` | 10 | Items per page |
+| `status` | `active` | Filter: `active` or `archived` |
 
-#### Response
+#### Response (200)
 ```json
 {
   "data": [
@@ -145,7 +145,7 @@ Updates an existing link. Only the owner can update their links.
 - Required
 
 #### Request Body
-All fields are optional. Only include fields you want to update.
+All fields are optional. Set to `null` to remove a value.
 
 ```json
 {
@@ -160,28 +160,29 @@ All fields are optional. Only include fields you want to update.
 #### Response (200)
 ```json
 {
-  "id": "nanoid",
-  "user_id": "nanoid",
-  "title": "Updated Title",
-  "long_url": "https://new-url.com",
-  "short_code": "newcode",
-  "has_password": true,
-  "is_archived": false,
-  "expired_at": "2025-12-31T23:59:59Z"
+  "data": {
+    "id": "nanoid",
+    "user_id": "nanoid",
+    "title": "Updated Title",
+    "long_url": "https://new-url.com",
+    "short_code": "newcode",
+    "has_password": true,
+    "is_archived": false,
+    "expired_at": "2025-12-31T23:59:59Z"
+  }
 }
 ```
 
 #### Error Responses
 - `400` - Short code already taken
 - `404` - Link not found or not owned by user
-- `500` - Internal server error
 
 ---
 
 ### 5. Delete Link
 **DELETE** `/api/links/:shortCode`
 
-Permanently deletes a link. Only the owner can delete their links.
+Soft deletes a link (preserves data but makes short code unavailable).
 
 #### Authentication
 - Required
@@ -192,11 +193,37 @@ Permanently deletes a link. Only the owner can delete their links.
   "message": "Link has been deleted successfully"
 }
 ```
+
 #### Error Responses
 - `404` - Link not found or not owned by user
-- `500` - Internal server error
 
 ---
 
+### 6. Verify Password
+**POST** `/api/links/:shortCode/verify`
 
+Verifies password for password-protected links and returns the destination URL.
 
+#### Authentication
+- None
+
+#### Request Body
+```json
+{
+  "password": "secret123"
+}
+```
+
+#### Response (200)
+```json
+{
+  "data": {
+    "long_url": "https://example.com/very-long-url"
+  }
+}
+```
+
+#### Error Responses
+- `400` - Link is not password protected
+- `401` - Incorrect password
+- `404` - Link not found

@@ -11,11 +11,10 @@ The service uses JWT-based authentication with access and refresh tokens. Access
 
 ---
 
-
 ### 1. Register
 **POST** `/api/auth/register`
 
-Creates a new user account.
+Creates a new user account and automatically logs in.
 
 #### Request Body
 ```json
@@ -34,16 +33,21 @@ Creates a new user account.
 #### Response (201)
 ```json
 {
-  "id": "nanoid",
-  "email": "john@example.com",
-  "name": "John Doe"
+  "data": {
+    "user": {
+      "id": "nanoid",
+      "email": "john@example.com",
+      "name": "John Doe"
+    },
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
 }
 ```
 
 #### Error Responses
 - `400` - Email already exists
 - `400` - Validation failed (invalid format)
-
 
 ---
 
@@ -63,20 +67,17 @@ Authenticates user and returns access + refresh tokens.
 #### Response (200)
 ```json
 {
-  "user": {
-    "id": "nanoid",
-    "email": "john@example.com",
-    "name": "John Doe"
-  },
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "data": {
+    "user": {
+      "id": "nanoid",
+      "email": "john@example.com",
+      "name": "John Doe"
+    },
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
 }
 ```
-
-#### Response Fields
-- **user**: User profile information
-- **accessToken**: Short-lived JWT for API requests
-- **refreshToken**: Long-lived JWT for obtaining new access tokens
 
 #### Error Responses
 - `401` - Invalid credentials (wrong email or password)
@@ -99,7 +100,9 @@ Obtains a new access token using a valid refresh token.
 #### Response (200)
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
 }
 ```
 
@@ -123,9 +126,6 @@ Invalidates current session and revokes all user tokens.
 Authorization: Bearer <access_token>
 ```
 
-#### Request Body
-None required (user info extracted from token)
-
 #### Response (200)
 ```json
 {
@@ -141,5 +141,3 @@ None required (user info extracted from token)
 #### Error Responses
 - `401` - Invalid or missing access token
 - `401` - Token already blacklisted
-
----

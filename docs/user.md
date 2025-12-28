@@ -11,25 +11,23 @@ The User API provides endpoints for retrieving and updating authenticated user i
 Retrieves current authenticated user's profile.
 
 #### Authentication
-- **Required**: Yes (Bearer token)
-
-#### Request Headers
-```
-Authorization: Bearer <access_token>
-```
+- Required (Bearer token)
 
 #### Response (200)
 ```json
 {
-  "id": "nanoid",
-  "email": "john@example.com",
-  "name": "John Doe"
+  "data": {
+    "id": "nanoid",
+    "email": "john@example.com",
+    "name": "John Doe"
+  }
 }
 ```
 
 #### Error Responses
 - `401` - Invalid or missing access token
-- `404` - User not found (deleted account)
+- `404` - User not found
+
 ---
 
 ### 2. Update Profile
@@ -38,7 +36,7 @@ Authorization: Bearer <access_token>
 Updates the authenticated user's profile information.
 
 #### Authentication
-- **Required**: Yes (Bearer token)
+- Required (Bearer token)
 
 #### Request Body
 ```json
@@ -50,25 +48,28 @@ Updates the authenticated user's profile information.
 #### Response (200)
 ```json
 {
-  "id": "nanoid",
-  "email": "john@example.com",
-  "name": "John Updated"
+  "data": {
+    "id": "nanoid",
+    "email": "john@example.com",
+    "name": "John Updated"
+  }
 }
 ```
 
 #### Error Responses
 - `400` - Invalid validation
 - `401` - Invalid or missing access token
-- `404` - User not found (deleted account)
+- `404` - User not found
+
 ---
 
 ### 3. Update Password
 **POST** `/api/users/me/password`
 
-Updates the authenticated user’s password securely.
+Updates the authenticated user's password.
 
 #### Authentication
-- **Required**: Yes (Bearer token)
+- Required (Bearer token)
 
 #### Request Body
 ```json
@@ -76,7 +77,6 @@ Updates the authenticated user’s password securely.
   "old_password": "oldPass123",
   "new_password": "newPass456"
 }
-
 ```
 
 #### Response (200)
@@ -87,7 +87,6 @@ Updates the authenticated user’s password securely.
 ```
 
 #### Error Responses
-- `400` - Invalid validation
+- `400` - Old passwords do not match / Invalid validation
 - `401` - Invalid or missing access token
-- `404` - User not found (deleted account)
----
+- `404` - User not found

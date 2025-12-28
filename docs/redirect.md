@@ -1,52 +1,60 @@
 # Redirect API Documentation
 
 ## Overview
-The Redirect API handles all public-facing functionality for accessing shortened links.
+The Redirect API handles all public-facing functionality for accessing shortened links. Special cases (password-protected, expired, not found) redirect to frontend pages instead of returning errors.
 
 ---
 
-### 1. Redirect Link
+### Redirect Link
 **GET** `/:shortCode`
 
-Redirects the user to the original long URL associated with the given shortCode.
+Redirects the user based on link status.
 
 #### Authentication
 - None
 
-#### Response 301
-- Redirect to original link
-
-
-#### Error Responses
-- `404` - Link not found
+#### Query Parameters
+| Parameter | Description |
+|-----------|-------------|
+| `qr` | Set to `1` if accessed via QR code scan |
 
 ---
 
-### 2. Verify Password Link
-**GET** `/:shortCode/verify`
+#### Redirect Behavior
 
-Verifies the password for a password-protected link.
-
-#### Authentication
-- None
-
-#### Request Body
-```json
-{
-  "password": "secret"
-}
-```
-
-#### Response (200)
-```json
-{
-  "long_url": "https://example.com"
-}
-```
-
-#### Error Responses
-- `400` – Password missing 
-- `401` – Invalid password 
-- `404` – Link not found
+| Condition | Status | Redirects To |
+|-----------|--------|--------------|
+| Normal link | 301 | Original long URL |
+| Password protected | 302 | `/p/:shortCode` (Frontend) |
+| Expired link | 302 | `/expired` (Frontend) |
+| Archived link | 302 | `/expired` (Frontend) |
+| Not found | 302 | `/not-found` (Frontend) |
 
 ---
+
+#### Examples
+
+**Normal redirect:**
+```
+GET /abc123
+→ 301 Redirect to https://example.com/original-url
+```
+
+**Password protected:**
+```
+GET /abc123
+→ 302 Redirect to https://app.snyp.click/p/abc123
+```
+
+**Expired/Archived:**
+```
+GET /abc123
+→ 302 Redirect to https://app.snyp.click/expired
+```
+
+---
+
+### Notes
+- Password verification is handled by `POST /api/links/:shortCode/verify` (see [Link API](link.md))
+- Click tracking occurs only on successful redirects (not password/expired pages)
+- QR scan tracking: append `?qr=1` to the short link
