@@ -19,4 +19,6 @@ router.get('/referrers/export', requireAuth, analyticsController.exportReferrers
 router.get('/devices/export', requireAuth, analyticsController.exportDevices);
 router.get('/browsers/export', requireAuth, analyticsController.exportBrowsers);
 router.get('/countries/export', requireAuth, analyticsController.exportCountries);
+router.get('/cities/export', requireAuth, analyticsController.exportCities);
+
 export default router;

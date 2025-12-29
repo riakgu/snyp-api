@@ -439,6 +439,30 @@ async function exportCountries(req) {
     return { csv, filename };
 }
 
+async function exportCities(req) {
+    const { userId } = req.auth;
+    const period = req.query.period || '7d';
+    const { start, end } = getPeriodDates(period);
+
+    const cities = await prisma.linkClick.groupBy({
+        by: ['city'],
+        where: {
+            link: { user_id: userId, deleted_at: null },
+            ...(start && { created_at: { gte: start, lte: end } })
+        },
+        _count: true,
+        orderBy: { _count: { city: 'desc' } },
+    });
+
+    const headers = ['city', 'clicks'];
+    const rows = cities.map(c => [c.city || 'Unknown', c._count]);
+
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const filename = `cities_${period}_${new Date().toISOString().split('T')[0]}.csv`;
+
+    return { csv, filename };
+}
+
 export default {
     getOverview,
     getClicks,
@@ -454,4 +478,5 @@ export default {
     exportDevices,
     exportBrowsers,
     exportCountries,
+    exportCities,
 };

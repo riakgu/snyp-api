@@ -140,6 +140,16 @@ async function exportCountries(req, res, next) {
     }
 }
 
+async function exportCities(req, res, next) {
+    try {
+        const { csv, filename } = await analyticsService.exportCities(req);
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(csv);
+    } catch (err) {
+        next(err);
+    }
+}
 
 export default {
     getOverview,
@@ -156,4 +166,5 @@ export default {
     exportDevices,
     exportBrowsers,
     exportCountries,
+    exportCities,
 };
