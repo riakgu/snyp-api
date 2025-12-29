@@ -1,5 +1,5 @@
 import rateLimiterService from "../services/rateLimiter.service.js";
-import { logger } from "../utils/logging.js";
+import { logger } from "../config/logger.js";
 import config from "../config/index.js";
 
 export function createRateLimiter(options = {}) {

@@ -1,5 +1,5 @@
 import { validate } from "../utils/validators.js";
-import { prismaClient } from "../config/database.js";
+import { prisma } from "../config/prisma.js";
 import {
     createLinkAuthValidation,
     createLinkValidation,
@@ -25,7 +25,7 @@ async function createLink(req) {
         const shortCode = customCode ?? generateShortCode(5);
 
         try {
-            const link = await prismaClient.link.create({
+            const link = await prisma.link.create({
                 data: {
                     user_id: isAuth ? req.auth.userId : null,
                     title: isAuth ? data.title : null,
@@ -84,7 +84,7 @@ async function getLinkByShortCode(req) {
         };
     }
 
-    const link = await prismaClient.link.findUnique({
+    const link = await prisma.link.findUnique({
         where: { short_code: shortCode, deleted_at: null },
         select: {
             id: true,
@@ -137,7 +137,7 @@ async function updateLink(req) {
             : data.title ?? undefined;
 
     try {
-        const link = await prismaClient.link.update({
+        const link = await prisma.link.update({
             where: {
                 short_code: shortCode,
                 user_id: userId,
@@ -193,7 +193,7 @@ async function deleteLink(req) {
     const { shortCode } = req.params;
 
     try {
-        const result = await prismaClient.link.update({
+        const result = await prisma.link.update({
             where: {
                 short_code: shortCode,
                 user_id: userId,
@@ -235,7 +235,7 @@ async function getLinks(req) {
     };
 
 
-    const links = await prismaClient.link.findMany({
+    const links = await prisma.link.findMany({
         where,
         orderBy: { created_at: 'desc' },
         skip,
@@ -254,14 +254,7 @@ async function getLinks(req) {
         }
     });
 
-    const total = await prismaClient.link.count({ where });
-
-    if (total === 0) {
-        return {
-            message: 'You haven\'t created any links yet',
-            data: [],
-        };
-    }
+    const total = await prisma.link.count({ where });
 
     return {
         data: links.map(link => ({
@@ -285,7 +278,7 @@ async function archiveLink(req) {
     const { shortCode } = req.params;
 
     try {
-        const result = await prismaClient.link.update({
+        const result = await prisma.link.update({
             where: {
                 short_code: shortCode,
                 user_id: userId,
@@ -312,7 +305,7 @@ async function restoreLink(req) {
     const { shortCode } = req.params;
 
     try {
-        const result = await prismaClient.link.update({
+        const result = await prisma.link.update({
             where: {
                 short_code: shortCode,
                 user_id: userId,

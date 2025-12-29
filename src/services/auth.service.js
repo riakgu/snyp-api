@@ -1,5 +1,5 @@
 import {loginValidation, refreshValidation, registerValidation} from "../validations/auth.validation.js";
-import {prismaClient} from "../config/database.js";
+import {prisma} from "../config/prisma.js";
 import {ResponseError} from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
 import {validate} from "../utils/validators.js";
@@ -11,7 +11,7 @@ async function register(req) {
     const passwordHashed = await bcrypt.hash(password, 10);
 
     try {
-        const user = await prismaClient.user.create({
+        const user = await prisma.user.create({
             data: {
                 name,
                 email,
@@ -40,7 +40,7 @@ async function register(req) {
 async function login(req) {
     const { email, password } = validate(loginValidation, req.body);
 
-    const user = await prismaClient.user.findUnique({
+    const user = await prisma.user.findUnique({
         where: { email },
         select: {
             id: true,

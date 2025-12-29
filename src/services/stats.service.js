@@ -1,7 +1,7 @@
 import crypto from 'crypto';
-import { prismaClient } from '../config/database.js';
+import { prisma } from '../config/prisma.js';
 import { ResponseError } from '../errors/response.error.js';
-import { logger } from "../utils/logging.js";
+import { logger } from "../config/logger.js";
 import queueService from './queue.service.js';
 import { getClientIp, getUserAgent, getReferrer, parseUserAgent } from "../utils/requestInfo.js";
 import cacheService from "./cache.service.js";
@@ -53,7 +53,7 @@ async function trackVisit(req) {
 async function getTotalStats(req) {
     const { userId } = req.auth;
 
-    const result = await prismaClient.linkStats.aggregate({
+    const result = await prisma.linkStats.aggregate({
         where: {
             link: {
                 user_id: userId,
@@ -67,11 +67,11 @@ async function getTotalStats(req) {
         }
     });
 
-    const totalLinks = await prismaClient.link.count({
+    const totalLinks = await prisma.link.count({
         where: { user_id: userId, deleted_at: null, archived_at: null }
     });
 
-    const archivedLinks = await prismaClient.link.count({
+    const archivedLinks = await prisma.link.count({
         where: { user_id: userId, deleted_at: null, archived_at: { not: null } }
     });
 
@@ -89,7 +89,7 @@ async function getStats(req) {
     const { shortCode } = req.params;
 
     try {
-        const link = await prismaClient.link.findUnique({
+        const link = await prisma.link.findUnique({
             where: { short_code: shortCode },
             include: { stats: true },
         });
@@ -113,7 +113,7 @@ async function processVisitEvent(data) {
     const { shortCode, isFromQR, isUnique, referrer, browser, os, device, country, city } = data;
 
     try {
-        const link = await prismaClient.link.findUnique({
+        const link = await prisma.link.findUnique({
             where: { short_code: shortCode },
             select: { id: true }
         });
@@ -123,7 +123,7 @@ async function processVisitEvent(data) {
             return;
         }
 
-        await prismaClient.linkClick.create({
+        await prisma.linkClick.create({
             data: {
                 link_id: link.id,
                 referrer,
@@ -137,7 +137,7 @@ async function processVisitEvent(data) {
             }
         });
 
-        await prismaClient.linkStats.update({
+        await prisma.linkStats.update({
             where: { link_id: link.id },
             data: {
                 total_clicks: { increment: 1 },

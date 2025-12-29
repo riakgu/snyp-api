@@ -1,6 +1,6 @@
 import {validate} from "../utils/validators.js";
 import {updatePasswordValidation, updateUserValidation} from "../validations/user.validation.js";
-import {prismaClient} from "../config/database.js";
+import {prisma} from "../config/prisma.js";
 import {ResponseError} from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
 
@@ -9,7 +9,7 @@ async function updateUser(req) {
     const { name } = validate(updateUserValidation, req.body);
 
     try {
-        return await prismaClient.user.update({
+        return await prisma.user.update({
             where: {id: userId},
             data: {
                 name: name,
@@ -32,7 +32,7 @@ async function updatePassword(req) {
     const userId = req.auth.userId;
     const { old_password, new_password } = validate(updatePasswordValidation, req.body);
 
-    const user = await prismaClient.user.findUnique({
+    const user = await prisma.user.findUnique({
         where: {id: userId},
         select: {
             password: true
@@ -51,7 +51,7 @@ async function updatePassword(req) {
 
     const passwordHashed = await bcrypt.hash(new_password, 10);
 
-    await prismaClient.user.update({
+    await prisma.user.update({
         where: {id: userId},
         data: {
             password: passwordHashed,
@@ -62,7 +62,7 @@ async function updatePassword(req) {
 async function getProfile(req) {
     const userId = req.auth.userId;
 
-    const user = await prismaClient.user.findUnique({
+    const user = await prisma.user.findUnique({
         where: {id: userId},
         select: {
             id: true,

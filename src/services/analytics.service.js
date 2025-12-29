@@ -1,4 +1,4 @@
-import { prismaClient } from '../config/database.js';
+import { prisma } from '../config/prisma.js';
 
 function getPeriodDates(period) {
     const now = new Date();
@@ -41,7 +41,7 @@ async function getOverview(req) {
     const prevDateFilter = prevStart ? { gte: prevStart, lte: prevEnd } : undefined;
 
     // Current period
-    const current = await prismaClient.linkClick.groupBy({
+    const current = await prisma.linkClick.groupBy({
         by: ['is_unique', 'is_qr'],
         where: {
             ...baseWhere,
@@ -51,7 +51,7 @@ async function getOverview(req) {
     });
 
     // Previous period
-    const previous = await prismaClient.linkClick.groupBy({
+    const previous = await prisma.linkClick.groupBy({
         by: ['is_unique', 'is_qr'],
         where: {
             ...baseWhere,
@@ -86,7 +86,7 @@ async function getClicks(req) {
         ...(start && { created_at: { gte: start, lte: end } })
     };
 
-    const clicks = await prismaClient.linkClick.groupBy({
+    const clicks = await prisma.linkClick.groupBy({
         by: ['created_at'],
         where: baseWhere,
         _count: true,
@@ -109,7 +109,7 @@ async function getTopLinks(req) {
     const limit = parseInt(req.query.limit) || 5;
     const { start, end } = getPeriodDates(period);
 
-    const clicks = await prismaClient.linkClick.groupBy({
+    const clicks = await prisma.linkClick.groupBy({
         by: ['link_id'],
         where: {
             link: { user_id: userId, deleted_at: null },
@@ -122,7 +122,7 @@ async function getTopLinks(req) {
 
     // Get link details
     const linkIds = clicks.map(c => c.link_id);
-    const links = await prismaClient.link.findMany({
+    const links = await prisma.link.findMany({
         where: { id: { in: linkIds } },
         select: { id: true, short_code: true, long_url: true }
     });
@@ -142,7 +142,7 @@ async function getReferrers(req) {
     const limit = parseInt(req.query.limit) || 10;
     const { start, end } = getPeriodDates(period);
 
-    const referrers = await prismaClient.linkClick.groupBy({
+    const referrers = await prisma.linkClick.groupBy({
         by: ['referrer'],
         where: {
             link: { user_id: userId, deleted_at: null },
@@ -164,7 +164,7 @@ async function getDevices(req) {
     const period = req.query.period || '7d';
     const { start, end } = getPeriodDates(period);
 
-    const devices = await prismaClient.linkClick.groupBy({
+    const devices = await prisma.linkClick.groupBy({
         by: ['device'],
         where: {
             link: { user_id: userId, deleted_at: null },
@@ -186,7 +186,7 @@ async function getBrowsers(req) {
     const limit = parseInt(req.query.limit) || 5;
     const { start, end } = getPeriodDates(period);
 
-    const browsers = await prismaClient.linkClick.groupBy({
+    const browsers = await prisma.linkClick.groupBy({
         by: ['browser'],
         where: {
             link: { user_id: userId, deleted_at: null },
@@ -217,7 +217,7 @@ async function getCountries(req) {
     const period = req.query.period || '7d';
     const limit = parseInt(req.query.limit) || 10;
     const { start, end } = getPeriodDates(period);
-    const countries = await prismaClient.linkClick.groupBy({
+    const countries = await prisma.linkClick.groupBy({
         by: ['country'],
         where: {
             link: { user_id: userId, deleted_at: null },
@@ -238,7 +238,7 @@ async function getCities(req) {
     const period = req.query.period || '7d';
     const limit = parseInt(req.query.limit) || 10;
     const { start, end } = getPeriodDates(period);
-    const cities = await prismaClient.linkClick.groupBy({
+    const cities = await prisma.linkClick.groupBy({
         by: ['city'],
         where: {
             link: { user_id: userId, deleted_at: null },

@@ -1,5 +1,4 @@
 import authService from "../services/auth.service.js";
-import {logger} from "../utils/logging.js";
 
 async function register(req, res, next) {
     try {

@@ -1,7 +1,6 @@
 import supertest from "supertest";
 import app from "../src/app.js";
 import { createTestUser, removeTestUser } from "./utils.js";
-import { logger } from "../src/utils/logging.js";
 
 describe('POST /api/auth/register', function () {
 

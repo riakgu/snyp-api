@@ -25,7 +25,7 @@ describe('GET /:shortCode', function () {
             .get(`/gftrdtr`)
 
         expect(result.status).toBe(302);
-        expect(result.headers.location).toContain('/not-found');
+        expect(result.headers.location).toContain('/n/');
     });
 
 

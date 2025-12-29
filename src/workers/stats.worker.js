@@ -1,6 +1,6 @@
-import {getChannel, STATS_QUEUE} from '../config/rabbitmq.js';
+import { getChannel, STATS_QUEUE } from '../config/rabbitmq.js';
 import statsService from '../services/stats.service.js';
-import {logger} from "../utils/logging.js";
+import { logger } from "../config/logger.js";
 
 export async function startStatsWorker() {
     const channel = getChannel();

@@ -1,7 +1,7 @@
-import { prismaClient } from '../config/database.js';
+import { prisma } from '../config/prisma.js';
 import { redis } from '../config/redis.js';
-import { logger } from './logging.js';
-import {closeRabbitMQ} from "../config/rabbitmq.js";
+import { logger } from '../config/logger.js';
+import { closeRabbitMQ } from "../config/rabbitmq.js";
 
 export async function gracefulShutdown(signal) {
     logger.info(`${signal} received. Shutting down gracefully...`);
@@ -11,7 +11,7 @@ export async function gracefulShutdown(signal) {
         await closeRabbitMQ();
 
         logger.info('Closing Prisma connection...');
-        await prismaClient.$disconnect();
+        await prisma.$disconnect();
 
         logger.info('Closing Redis connection...');
         await redis.quit();

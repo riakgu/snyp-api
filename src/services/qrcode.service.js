@@ -1,5 +1,5 @@
 import QRCode from "qrcode";
-import {prismaClient} from "../config/database.js";
+import {prisma} from "../config/prisma.js";
 import {ResponseError} from "../errors/response.error.js";
 import cacheService from "./cache.service.js";
 import config from "../config/index.js"
@@ -9,7 +9,7 @@ async function generateQRCode(req) {
 
     const fullUrl = `${config.app.baseUrl}/${shortCode}?qr=1`;
 
-    const link = await prismaClient.link.findUnique({
+    const link = await prisma.link.findUnique({
         where: { short_code: shortCode },
     });
 

@@ -1,5 +1,5 @@
 import { getChannel, STATS_QUEUE } from '../config/rabbitmq.js';
-import { logger } from "../utils/logging.js";
+import { logger } from "../config/logger.js";
 
 async function publishVisitEvent(data) {
     try {

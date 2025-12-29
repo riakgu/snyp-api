@@ -1,8 +1,8 @@
 import app from './app.js';
-import {logger} from "./utils/logging.js";
+import { logger } from "./config/logger.js";
 import config from "./config/index.js";
-import {gracefulShutdown} from "./utils/gracefulShutdown.js";
-import {connectRabbitMQ} from "./config/rabbitmq.js";
+import { gracefulShutdown } from "./utils/gracefulShutdown.js";
+import { connectRabbitMQ } from "./config/rabbitmq.js";
 
 await connectRabbitMQ();
 

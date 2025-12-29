@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { ResponseError } from "../errors/response.error.js";
 import config from "../config/index.js";
 import cacheService from "./cache.service.js";
-import {logger} from "../utils/logging.js";
+import {logger} from "../config/logger.js";
 
 function generateAccessToken(userId) {
     return jwt.sign(
