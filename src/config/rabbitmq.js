@@ -7,14 +7,12 @@ let channel = null;
 
 export const STATS_QUEUE = 'stats_queue';
 
-export async function connectRabbitMQ() {
+export async function connect() {
     try {
         connection = await amqp.connect(config.rabbitMQ.url);
         channel = await connection.createChannel();
 
-        await channel.assertQueue(STATS_QUEUE, {
-            durable: true,
-        });
+        await channel.assertQueue(STATS_QUEUE, { durable: true });
 
         logger.info('RabbitMQ connected');
 
@@ -24,12 +22,12 @@ export async function connectRabbitMQ() {
 
         connection.on('close', () => {
             logger.info('RabbitMQ connection closed, reconnecting...');
-            setTimeout(connectRabbitMQ, 5000);
+            setTimeout(connect, 5000);
         });
 
     } catch (error) {
         logger.error('Failed to connect to RabbitMQ:', error);
-        setTimeout(connectRabbitMQ, 5000);
+        setTimeout(connect, 5000);
     }
 }
 
@@ -40,7 +38,7 @@ export function getChannel() {
     return channel;
 }
 
-export async function closeRabbitMQ() {
+export async function close() {
     try {
         if (channel) await channel.close();
         if (connection) await connection.close();

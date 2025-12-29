@@ -1,4 +1,4 @@
-import { connectRabbitMQ, getChannel, STATS_QUEUE } from './config/rabbitmq.js';
+import { connect as connectRabbitMQ, getChannel, STATS_QUEUE } from './config/rabbitmq.js';
 import { shutdown } from "./config/shutdown.js";
 import { logger } from "./config/logger.js";
 import statsService from './services/stats.service.js';

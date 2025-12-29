@@ -2,7 +2,7 @@ import app from './config/express.js';
 import { logger } from "./config/logger.js";
 import config from "./config/index.js";
 import { shutdown } from "./config/shutdown.js";
-import { connectRabbitMQ } from "./config/rabbitmq.js";
+import { connect as connectRabbitMQ } from "./config/rabbitmq.js";
 
 await connectRabbitMQ();
 

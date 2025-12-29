@@ -1,17 +1,14 @@
 import Redis from "ioredis";
 import config from "./index.js";
-import {logger} from "./logger.js";
+import { logger } from "./logger.js";
 
 export const redis = new Redis(config.redis.url);
 
-redis.on('connect', () => {
-    logger.info('Redis connected');
-});
+redis.on('connect', () => logger.info('Redis connected'));
+redis.on('error', (err) => logger.error('Redis error:', err));
+redis.on('close', () => logger.info('Redis connection closed'));
 
-redis.on('error', (err) => {
-    logger.error('Redis error:', err);
-});
-
-redis.on('close', () => {
+export async function close() {
+    await redis.quit();
     logger.info('Redis connection closed');
-});
+}

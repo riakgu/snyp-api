@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import {logger} from "./logger.js";
+import { logger } from "./logger.js";
 
 export const prisma = new PrismaClient({
     log: [
@@ -10,18 +10,12 @@ export const prisma = new PrismaClient({
     ],
 });
 
-prisma.$on('error', (err) => {
-    logger.error(err);
-});
+prisma.$on('error', (err) => logger.error(err));
+prisma.$on('warn', (err) => logger.warn(err));
+prisma.$on('info', (err) => logger.info(err));
+prisma.$on('query', (err) => logger.info(err));
 
-prisma.$on('warn', (err) => {
-    logger.warn(err);
-});
-
-prisma.$on('info', (err) => {
-    logger.info(err);
-});
-
-prisma.$on('query', (err) => {
-    logger.info(err);
-});
+export async function close() {
+    await prisma.$disconnect();
+    logger.info('Prisma connection closed');
+}
