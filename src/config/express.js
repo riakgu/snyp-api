@@ -24,6 +24,10 @@ app.use(cors({
 
 app.use(express.json({ limit: '10kb' }));
 
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.use('/api', createRateLimiter({
     limit: config.rateLimit.global.limit,
     windowSeconds: config.rateLimit.global.windowSeconds,
