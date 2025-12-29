@@ -1,9 +1,9 @@
-import { prisma } from '../config/prisma.js';
-import { redis } from '../config/redis.js';
-import { logger } from '../config/logger.js';
-import { closeRabbitMQ } from "../config/rabbitmq.js";
+import { prisma } from './prisma.js';
+import { redis } from './redis.js';
+import { logger } from './logger.js';
+import { closeRabbitMQ } from "./rabbitmq.js";
 
-export async function gracefulShutdown(signal) {
+export async function shutdown(signal) {
     logger.info(`${signal} received. Shutting down gracefully...`);
 
     try {
