@@ -1,5 +1,10 @@
 import { customAlphabet } from 'nanoid';
 
-const ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const CODE_LENGTH = 6;
 
-export const generateShortCode = customAlphabet(ALPHABET, 5);
+const nanoid = customAlphabet(ALPHABET, CODE_LENGTH);
+
+export function generateShortCode() {
+    return nanoid();
+}
