@@ -16,5 +16,6 @@ router.get('/cities', requireAuth, analyticsController.getCities);
 router.get('/clicks/export', requireAuth, analyticsController.exportClicks);
 router.get('/top-links/export', requireAuth, analyticsController.exportTopLinks);
 router.get('/referrers/export', requireAuth, analyticsController.exportReferrers);
+router.get('/devices/export', requireAuth, analyticsController.exportDevices);
 
 export default router;
