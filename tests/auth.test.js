@@ -1,5 +1,5 @@
 import supertest from "supertest";
-import app from "../src/app.js";
+import app from "../src/config/express.js";
 import { createTestUser, removeTestUser } from "./utils.js";
 
 describe('POST /api/auth/register', function () {

@@ -1,6 +1,6 @@
 import {clearLinkTable, createTestUser, removeTestUser} from "./utils.js";
 import supertest from "supertest";
-import app from "../src/app.js";
+import app from "../src/config/express.js";
 
 describe('POST /api/users/me', function () {
 

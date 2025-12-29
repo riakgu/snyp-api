@@ -1,15 +1,15 @@
 import "dotenv/config";
 import express from "express";
-import authRoute from "./routes/auth.route.js";
-import { errorMiddleware } from "./middlewares/error.middleware.js";
-import linkRoute from "./routes/link.route.js";
-import redirectRoute from "./routes/redirect.route.js";
-import { createRateLimiter } from "./middlewares/rateLimiter.middleware.js";
-import config from "./config/index.js";
+import authRoute from "../routes/auth.route.js";
+import { errorMiddleware } from "../middlewares/error.middleware.js";
+import linkRoute from "../routes/link.route.js";
+import redirectRoute from "../routes/redirect.route.js";
+import { createRateLimiter } from "../middlewares/rateLimiter.middleware.js";
+import config from "./index.js";
 import helmet from "helmet";
 import cors from 'cors';
-import userRoute from "./routes/user.route.js";
-import analyticsRoute from "./routes/analytics.route.js";
+import userRoute from "../routes/user.route.js";
+import analyticsRoute from "../routes/analytics.route.js";
 
 const app = express();
 

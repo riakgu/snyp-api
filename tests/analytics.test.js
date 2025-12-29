@@ -1,6 +1,6 @@
 import { createTestLink, createTestUser, removeTestLink, removeTestUser } from "./utils.js";
 import supertest from "supertest";
-import app from "../src/app.js";
+import app from "../src/config/express.js";
 
 describe('GET /api/analytics/overview', function () {
 
