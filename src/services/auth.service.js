@@ -2,7 +2,7 @@ import {loginValidation, refreshValidation, registerValidation} from "../validat
 import {prisma} from "../config/prisma.js";
 import {ResponseError} from "../errors/response.error.js";
 import * as bcrypt from "bcrypt";
-import {validate} from "../utils/validators.js";
+import {validate} from "../validations/index.js";
 import tokenService from "./token.service.js";
 
 async function register(req) {

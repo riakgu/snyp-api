@@ -1,4 +1,4 @@
-import {validate} from "../utils/validators.js";
+import {validate} from "../validations/index.js";
 import {updatePasswordValidation, updateUserValidation} from "../validations/user.validation.js";
 import {prisma} from "../config/prisma.js";
 import {ResponseError} from "../errors/response.error.js";

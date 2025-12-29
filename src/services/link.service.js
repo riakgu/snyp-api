@@ -1,4 +1,4 @@
-import { validate } from "../utils/validators.js";
+import { validate } from "../validations/index.js";
 import { prisma } from "../config/prisma.js";
 import {
     createLinkAuthValidation,
