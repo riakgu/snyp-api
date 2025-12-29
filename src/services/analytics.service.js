@@ -415,6 +415,30 @@ async function exportBrowsers(req) {
     return { csv, filename };
 }
 
+async function exportCountries(req) {
+    const { userId } = req.auth;
+    const period = req.query.period || '7d';
+    const { start, end } = getPeriodDates(period);
+
+    const countries = await prisma.linkClick.groupBy({
+        by: ['country'],
+        where: {
+            link: { user_id: userId, deleted_at: null },
+            ...(start && { created_at: { gte: start, lte: end } })
+        },
+        _count: true,
+        orderBy: { _count: { country: 'desc' } },
+    });
+
+    const headers = ['country', 'clicks'];
+    const rows = countries.map(c => [c.country || 'Unknown', c._count]);
+
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const filename = `countries_${period}_${new Date().toISOString().split('T')[0]}.csv`;
+
+    return { csv, filename };
+}
+
 export default {
     getOverview,
     getClicks,
@@ -429,4 +453,5 @@ export default {
     exportReferrers,
     exportDevices,
     exportBrowsers,
+    exportCountries,
 };

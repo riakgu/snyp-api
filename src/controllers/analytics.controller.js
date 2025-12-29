@@ -129,6 +129,16 @@ async function exportBrowsers(req, res, next) {
     }
 }
 
+async function exportCountries(req, res, next) {
+    try {
+        const { csv, filename } = await analyticsService.exportCountries(req);
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(csv);
+    } catch (err) {
+        next(err);
+    }
+}
 
 
 export default {
@@ -145,4 +155,5 @@ export default {
     exportReferrers,
     exportDevices,
     exportBrowsers,
+    exportCountries,
 };

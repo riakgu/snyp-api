@@ -18,5 +18,5 @@ router.get('/top-links/export', requireAuth, analyticsController.exportTopLinks)
 router.get('/referrers/export', requireAuth, analyticsController.exportReferrers);
 router.get('/devices/export', requireAuth, analyticsController.exportDevices);
 router.get('/browsers/export', requireAuth, analyticsController.exportBrowsers);
-
+router.get('/countries/export', requireAuth, analyticsController.exportCountries);
 export default router;
