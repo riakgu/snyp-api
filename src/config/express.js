@@ -14,8 +14,15 @@ import analyticsRoute from "../routes/analytics.route.js";
 const app = express();
 
 app.use(helmet());
-app.use(cors());
-app.use(express.json());
+
+app.use(cors({
+    origin: config.app.env === 'production'
+        ? config.frontendUrl
+        : '*',
+    credentials: true,
+}));
+
+app.use(express.json({ limit: '10kb' }));
 
 app.use('/api', createRateLimiter({
     limit: config.rateLimit.global.limit,
