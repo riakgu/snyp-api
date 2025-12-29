@@ -343,6 +343,30 @@ async function exportTopLinks(req) {
     return { csv, filename };
 }
 
+async function exportReferrers(req) {
+    const { userId } = req.auth;
+    const period = req.query.period || '7d';
+    const { start, end } = getPeriodDates(period);
+
+    const referrers = await prisma.linkClick.groupBy({
+        by: ['referrer'],
+        where: {
+            link: { user_id: userId, deleted_at: null },
+            ...(start && { created_at: { gte: start, lte: end } })
+        },
+        _count: true,
+        orderBy: { _count: { referrer: 'desc' } },
+    });
+
+    const headers = ['referrer', 'clicks'];
+    const rows = referrers.map(r => [r.referrer || 'Direct', r._count]);
+
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const filename = `referrers_${period}_${new Date().toISOString().split('T')[0]}.csv`;
+
+    return { csv, filename };
+}
+
 export default {
     getOverview,
     getClicks,
@@ -354,4 +378,5 @@ export default {
     getCities,
     exportClicks,
     exportTopLinks,
+    exportReferrers,
 };
