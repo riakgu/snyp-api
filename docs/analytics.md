@@ -208,3 +208,77 @@ Get city breakdown.
   ]
 }
 ```
+
+---
+
+## Export Endpoints
+
+All export endpoints return CSV file downloads.
+
+### Export Clicks
+**GET** `/api/analytics/clicks/export`
+
+Export all click data as CSV.
+
+#### Response
+CSV file with columns: `date, short_code, referrer, browser, os, device, country, city, is_qr, is_unique`
+
+---
+
+### Export Top Links
+**GET** `/api/analytics/top-links/export`
+
+Export top links as CSV.
+
+#### Response
+CSV file with columns: `short_code, long_url, clicks`
+
+---
+
+### Export Referrers
+**GET** `/api/analytics/referrers/export`
+
+Export referrer data as CSV.
+
+#### Response
+CSV file with columns: `referrer, clicks`
+
+---
+
+### Export Devices
+**GET** `/api/analytics/devices/export`
+
+Export device data as CSV.
+
+#### Response
+CSV file with columns: `device, clicks`
+
+---
+
+### Export Browsers
+**GET** `/api/analytics/browsers/export`
+
+Export browser data as CSV.
+
+#### Response
+CSV file with columns: `browser, clicks`
+
+---
+
+### Export Countries
+**GET** `/api/analytics/countries/export`
+
+Export country data as CSV.
+
+#### Response
+CSV file with columns: `country, clicks`
+
+---
+
+### Export Cities
+**GET** `/api/analytics/cities/export`
+
+Export city data as CSV.
+
+#### Response
+CSV file with columns: `city, clicks`
