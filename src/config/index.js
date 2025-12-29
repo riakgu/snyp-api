@@ -1,22 +1,28 @@
 const config = {
     app: {
         host: process.env.NODE_ENV !== 'production' ? 'localhost' : '0.0.0.0',
-        port: process.env.PORT,
+        port: process.env.PORT || 3000,
         env: process.env.NODE_ENV,
-        baseUrl: process.env.BASE_URL,
+        backendUrl: process.env.BACKEND_URL,
+        frontendUrl: process.env.FRONTEND_URL,
     },
 
-    frontendUrl: process.env.FRONTEND_URL,
-
     redis: {
-        url: process.env.REDIS_URL,
+        url: process.env.REDIS_URL || 'redis://localhost:6379',
+    },
+
+    rabbitMQ: {
+        url: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
+        queues: {
+            stats: 'stats',
+        },
     },
 
     jwt: {
         accessSecret: process.env.JWT_ACCESS_SECRET,
         refreshSecret: process.env.JWT_REFRESH_SECRET,
-        accessExpire: process.env.JWT_ACCESS_EXPIRE,
-        refreshExpire: process.env.JWT_REFRESH_EXPIRE,
+        accessExpire: process.env.JWT_ACCESS_EXPIRE || '1d',
+        refreshExpire: process.env.JWT_REFRESH_EXPIRE || '7d',
     },
 
     rateLimit: {
@@ -27,13 +33,6 @@ const config = {
         auth: {
             limit: 5,
             windowSeconds: 300,
-        },
-    },
-
-    rabbitMQ: {
-        url: process.env.RABBITMQ_URL,
-        queues: {
-            stats: 'stats',
         },
     },
 };

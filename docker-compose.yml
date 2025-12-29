@@ -2,16 +2,19 @@ services:
   api:
     build: .
     ports:
-      - "3000:3000"
+      - "${PORT}:${PORT}"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/snyp
+      - NODE_ENV=production
+      - PORT=${PORT}
+      - BACKEND_URL=${BACKEND_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-snyp}
       - REDIS_URL=redis://redis:6379
       - RABBITMQ_URL=amqp://rabbitmq:5672
-      - NODE_ENV=production
-      - PORT=3000
       - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
-      - FRONTEND_URL=${FRONTEND_URL}
+      - JWT_ACCESS_EXPIRE=${JWT_ACCESS_EXPIRE}
+      - JWT_REFRESH_EXPIRE=${JWT_REFRESH_EXPIRE}
     depends_on:
       - db
       - redis
@@ -22,10 +25,10 @@ services:
     build: .
     command: node src/worker.js
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/snyp
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-snyp}
       - REDIS_URL=redis://redis:6379
       - RABBITMQ_URL=amqp://rabbitmq:5672
-      - NODE_ENV=production
     depends_on:
       - db
       - redis
@@ -35,9 +38,9 @@ services:
   db:
     image: postgres:18-alpine
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=snyp
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-snyp}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped

@@ -17,7 +17,7 @@ app.use(helmet());
 
 app.use(cors({
     origin: config.app.env === 'production'
-        ? config.frontendUrl
+        ? config.app.frontendUrl
         : '*',
     credentials: true,
 }));
@@ -30,7 +30,7 @@ app.get('/health', (req, res) => {
 
 app.get('/', (req, res) => {
     if (config.app.env === 'production') {
-        return res.redirect(config.frontendUrl);
+        return res.redirect(config.app.frontendUrl);
     }
     res.json({ message: 'Snyp API', version: '1.0.0' });
 });

@@ -1,13 +1,13 @@
 import QRCode from "qrcode";
-import {prisma} from "../config/prisma.js";
-import {ResponseError} from "../errors/response.error.js";
+import { prisma } from "../config/prisma.js";
+import { ResponseError } from "../errors/response.error.js";
 import cacheService from "./cache.service.js";
 import config from "../config/index.js"
 
 async function generateQRCode(req) {
     const { shortCode } = req.params;
 
-    const fullUrl = `${config.app.baseUrl}/${shortCode}?qr=1`;
+    const fullUrl = `${config.app.backendUrl}/${shortCode}?qr=1`;
 
     const link = await prisma.link.findUnique({
         where: { short_code: shortCode },
@@ -40,7 +40,7 @@ async function generateQRCode(req) {
             buffer: qrData
         }
     } catch (err) {
-        throw new ResponseError(500,'Internal Server Error');
+        throw new ResponseError(500, 'Internal Server Error');
     }
 }
 
