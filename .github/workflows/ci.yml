@@ -59,6 +59,8 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/snyp_test
 
       - name: Run migrations
         run: npx prisma migrate deploy
