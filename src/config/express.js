@@ -28,6 +28,13 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.get('/', (req, res) => {
+    if (config.app.env === 'production') {
+        return res.redirect(config.frontendUrl);
+    }
+    res.json({ message: 'Snyp API', version: '1.0.0' });
+});
+
 app.use('/api', createRateLimiter({
     limit: config.rateLimit.global.limit,
     windowSeconds: config.rateLimit.global.windowSeconds,
