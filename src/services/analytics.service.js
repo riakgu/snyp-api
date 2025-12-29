@@ -304,6 +304,45 @@ async function exportClicks(req) {
     return { csv, filename };
 }
 
+async function exportTopLinks(req) {
+    const { userId } = req.auth;
+    const period = req.query.period || '7d';
+    const { start, end } = getPeriodDates(period);
+
+    const clicks = await prisma.linkClick.groupBy({
+        by: ['link_id'],
+        where: {
+            link: { user_id: userId, deleted_at: null },
+            ...(start && { created_at: { gte: start, lte: end } })
+        },
+        _count: true,
+        orderBy: { _count: { link_id: 'desc' } },
+    });
+
+    const linkIds = clicks.map(c => c.link_id);
+    const links = await prisma.link.findMany({
+        where: { id: { in: linkIds } },
+        select: { id: true, short_code: true, long_url: true }
+    });
+    const linkMap = Object.fromEntries(links.map(l => [l.id, l]));
+
+    const headers = ['short_code', 'long_url', 'clicks'];
+    const rows = clicks.map(c => [
+        linkMap[c.link_id]?.short_code || '',
+        linkMap[c.link_id]?.long_url || '',
+        c._count
+    ]);
+
+    const csv = [
+        headers.join(','),
+        ...rows.map(r => r.join(','))
+    ].join('\n');
+
+    const filename = `top_links_${period}_${new Date().toISOString().split('T')[0]}.csv`;
+
+    return { csv, filename };
+}
+
 export default {
     getOverview,
     getClicks,
@@ -314,4 +353,5 @@ export default {
     getCountries,
     getCities,
     exportClicks,
+    exportTopLinks,
 };
