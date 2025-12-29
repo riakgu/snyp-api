@@ -72,6 +72,18 @@ async function getCities(req, res, next) {
     }
 }
 
+async function exportClicks(req, res, next) {
+    try {
+        const { csv, filename } = await analyticsService.exportClicks(req);
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(csv);
+    } catch (err) {
+        next(err);
+    }
+}
+
 export default {
     getOverview,
     getClicks,
@@ -81,4 +93,5 @@ export default {
     getBrowsers,
     getCountries,
     getCities,
+    exportClicks,
 };

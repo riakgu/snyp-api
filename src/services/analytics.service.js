@@ -254,6 +254,55 @@ async function getCities(req) {
     }));
 }
 
+async function exportClicks(req) {
+    const { userId } = req.auth;
+    const period = req.query.period || '7d';
+    const { start, end } = getPeriodDates(period);
+
+    const clicks = await prisma.linkClick.findMany({
+        where: {
+            link: { user_id: userId, deleted_at: null },
+            ...(start && { created_at: { gte: start, lte: end } })
+        },
+        select: {
+            created_at: true,
+            referrer: true,
+            browser: true,
+            os: true,
+            device: true,
+            country: true,
+            city: true,
+            is_qr: true,
+            is_unique: true,
+            link: { select: { short_code: true } }
+        },
+        orderBy: { created_at: 'desc' }
+    });
+
+    // Convert to CSV
+    const headers = ['date', 'short_code', 'referrer', 'browser', 'os', 'device', 'country', 'city', 'is_qr', 'is_unique'];
+    const rows = clicks.map(c => [
+        c.created_at.toISOString(),
+        c.link.short_code,
+        c.referrer || '',
+        c.browser || '',
+        c.os || '',
+        c.device || '',
+        c.country || '',
+        c.city || '',
+        c.is_qr,
+        c.is_unique
+    ]);
+
+    const csv = [
+        headers.join(','),
+        ...rows.map(r => r.join(','))
+    ].join('\n');
+
+    const filename = `clicks_${period}_${new Date().toISOString().split('T')[0]}.csv`;
+
+    return { csv, filename };
+}
 
 export default {
     getOverview,
@@ -264,4 +313,5 @@ export default {
     getBrowsers,
     getCountries,
     getCities,
+    exportClicks,
 };
