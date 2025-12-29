@@ -5,16 +5,19 @@ import { logger } from "./logger.js";
 let connection = null;
 let channel = null;
 
-export const STATS_QUEUE = 'stats_queue';
+export const QUEUES = config.rabbitMQ.queues;
 
 export async function connect() {
     try {
         connection = await amqp.connect(config.rabbitMQ.url);
         channel = await connection.createChannel();
 
-        await channel.assertQueue(STATS_QUEUE, { durable: true });
+        const queues = Object.values(QUEUES);
+        await Promise.all(
+            queues.map(q => channel.assertQueue(q, { durable: true }))
+        );
 
-        logger.info('RabbitMQ connected');
+        logger.info(`RabbitMQ connected. Queues: ${queues.join(', ')}`);
 
         connection.on('error', (err) => {
             logger.error('RabbitMQ connection error:', err);

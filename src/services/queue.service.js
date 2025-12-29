@@ -1,4 +1,4 @@
-import { getChannel, STATS_QUEUE } from '../config/rabbitmq.js';
+import { getChannel, QUEUES } from '../config/rabbitmq.js';
 import { logger } from "../config/logger.js";
 
 async function publishVisitEvent(data) {
@@ -20,7 +20,7 @@ async function publishVisitEvent(data) {
         const content = Buffer.from(JSON.stringify(message));
 
         channel.sendToQueue(
-            STATS_QUEUE,
+            QUEUES.stats,
             content,
             {
                 persistent: true,

@@ -32,6 +32,9 @@ const config = {
 
     rabbitMQ: {
         url: process.env.RABBITMQ_URL,
+        queues: {
+            stats: 'stats',
+        },
     },
 };
 
