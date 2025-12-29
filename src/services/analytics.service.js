@@ -391,6 +391,30 @@ async function exportDevices(req) {
     return { csv, filename };
 }
 
+async function exportBrowsers(req) {
+    const { userId } = req.auth;
+    const period = req.query.period || '7d';
+    const { start, end } = getPeriodDates(period);
+
+    const browsers = await prisma.linkClick.groupBy({
+        by: ['browser'],
+        where: {
+            link: { user_id: userId, deleted_at: null },
+            ...(start && { created_at: { gte: start, lte: end } })
+        },
+        _count: true,
+        orderBy: { _count: { browser: 'desc' } },
+    });
+
+    const headers = ['browser', 'clicks'];
+    const rows = browsers.map(b => [b.browser || 'Unknown', b._count]);
+
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const filename = `browsers_${period}_${new Date().toISOString().split('T')[0]}.csv`;
+
+    return { csv, filename };
+}
+
 export default {
     getOverview,
     getClicks,
@@ -404,4 +428,5 @@ export default {
     exportTopLinks,
     exportReferrers,
     exportDevices,
+    exportBrowsers,
 };

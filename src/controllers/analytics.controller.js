@@ -118,6 +118,19 @@ async function exportDevices(req, res, next) {
     }
 }
 
+async function exportBrowsers(req, res, next) {
+    try {
+        const { csv, filename } = await analyticsService.exportBrowsers(req);
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(csv);
+    } catch (err) {
+        next(err);
+    }
+}
+
+
+
 export default {
     getOverview,
     getClicks,
@@ -131,4 +144,5 @@ export default {
     exportTopLinks,
     exportReferrers,
     exportDevices,
+    exportBrowsers,
 };
