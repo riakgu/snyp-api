@@ -68,7 +68,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/snyp_test
 
       - name: Run tests
-        run: npm test
+        run: npm test -- --forceExit
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/snyp_test
           REDIS_URL: redis://localhost:6379
